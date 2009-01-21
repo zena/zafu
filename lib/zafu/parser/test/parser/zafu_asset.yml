@@ -1,0 +1,44 @@
+do_nothing:
+  src: "this is just <h2 class='any'>a title</h2>"
+  res: "this is just <h2 class='any'>a title</h2>"
+
+change_stylesheet:
+  src: "<link href='local/test.css' rel='stylesheet' type='text/css'/>"
+  res: "<link href='/test_stylesheet/local/test.css' rel='stylesheet' type='text/css'/>"
+
+ignore_absolute_path:
+  src: "<link rel='stylesheet' type='text/css' href='/absolute/test.css'/>"
+  res: "<link href='/absolute/test.css' rel='stylesheet' type='text/css'/>"
+
+bad_link:
+  src: "<link rel='stylesheet'/>"
+  res: "<link rel='stylesheet'/>"
+  
+change_img_src:
+  src: "this <img src='images/logo.png'/> image"
+  res: "this <img src='/test_img/images/logo.png'/> image"
+  
+do_not_change_img_src:
+  src: "this <img src='http://example.com/logo.png'/> image"
+  res: "this <img src='http://example.com/logo.png'/> image"
+
+change_script_src:
+  src: |
+    <script src='functions.js' type='text/javascript'>
+      var = '<r:hello/>'
+    </script>
+  res: |
+    <script src='/test_script/functions.js' type='text/javascript'>
+      var = 'hello world!'
+    </script>
+
+change_style_url:
+  src: |
+    <style>
+    #super { background:url('images/logo.png');}
+    </style>
+  res: |
+    <style>
+    #super { background:url('/test_/images/logo.png');}
+    </style>
+  

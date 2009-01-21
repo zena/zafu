@@ -1,0 +1,2 @@
+== zafu 0.0.1 2009-01-21
+* Extraction from zena (this version might not work at all). [gaspard]

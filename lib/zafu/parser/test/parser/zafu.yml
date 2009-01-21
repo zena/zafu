@@ -1,0 +1,387 @@
+empty:
+  src: ""
+  res: ""
+
+hello:
+  src: "<r:hello/>"
+  res: "hello world!"
+  
+double_hello:
+  src: "<r:hello/> <r:hello/>"
+  res: "hello world! hello world!"
+
+ignore_html:
+  src: "<div class='test'><p>some <i>funny</i> text</p></div>"
+  res: "<div class='test'><p>some <i>funny</i> text</p></div>"
+
+ignore_tag:
+  src: "there is <li do='ignore'>delete me</li>nothing"
+  res: "there is nothing"
+
+ignore_do_empty:
+  src: "there is <li do=''>delete me</li>nothing left"
+  res: "there is nothing left"
+
+hello_skip_content:
+  src: "<r:hello>I want to live forever</r:hello>"
+  res: "hello world!"
+
+tag_not_closed:
+  src: "this is <r:test super='life' is = \"fine\""
+  res: "this is <r:test super='life' is = \"fine\""
+
+#tag_param_has_bracket:
+#  src: "a special tag: <r:test p='<red>yo</red>'><r:hello/></r:test>"
+#  res: "a special tag: [test {= :p=>'<red>yo</red>'}][hello/][/test]"
+
+hello_not_closed:
+  src: "I say <r:hello>blah blah"
+  res: "I say hello world!"
+
+test:
+  src: "this <r:test>is a test</r:test> <r:hello/>"
+  res: "this [test]is a test[/test] hello world!"
+
+only_hello:
+   src: "<r:only_hello>Some things <r:test/> <r:hello/></r:only_hello>"
+   res: "hello world!"
+
+only_string:
+  src: "<r:only_string>Some things <r:test/>. <r:hello/>.</r:only_string>"
+  res: "Some things . ."
+
+very_messy:
+  src: "this <r: blah> </r:truc> whak"
+  res: "this <r: blah> <span class='parser_error'>&lt;/r:truc&gt; should be &lt;/r:void&gt;</span> whak"
+
+bad_closing_tag:
+  src: "this <r:test>looks </r:truc> ok"
+  res: "this [test]looks <span class='parser_error'>&lt;/r:truc&gt; should be &lt;/r:test&gt;</span>[/test] ok"
+
+do_tag:
+  src: "I say <p do='hello'>blah blah</p>"
+  res: "I say <p>hello world!</p>"
+
+do_tag_count:
+  src: "I say <p do='hello'>blah <p>super</p> blah</p> is good"
+  res: "I say <p>hello world!</p> is good"
+
+do_tag_closed:
+  src: "I say <p do='hello'/> is good"
+  res: "I say <p>hello world!</p> is good"
+
+do_tag_block:
+  src:  "I say <div do='test'>this <div>test</div> is ok</div> right?"
+  res: "I say [test]<div>this <div>test</div> is ok</div>[/test] right?"
+
+do_tag_at_end:
+  src:  "I say <div do='test'>this <div>test</div> is ok</div>"
+  res: "I say [test]<div>this <div>test</div> is ok</div>[/test]"
+
+do_tag_with_ztags:
+  src: "I say <div do='test'>this <r:hello/></div>"
+  res: "I say [test]<div>this [hello/]</div>[/test]"
+
+do_keep_params:
+  src: "I love <div class='truc' id='machin' do='test' depth='3'>my wife</div>"
+  res: "I love [test {= :depth=>'3'} {> :name=>'machin'}]<div class='truc' id='machin'>my wife</div>[/test]"
+
+do_class_params:
+  src: "<div class='one' do='test' do='test' tag='p' class='two'>blah</div>"
+  res: "[test]<div class='one'>[test]<p class='two'>blah</p>[/test]</div>[/test]"
+
+do_and_ztags:
+  src: "Hey <r:test>this is <p do='hello'>ok</p></r:test>"
+  res: "Hey [test]this is [hello]<p>ok</p>[/hello][/test]"
+
+do_same_tag:
+  src: "Hey <p do='test'> is <p do='hello'>hello <p>cool</p></p></p>"
+  res: "Hey [test]<p> is [hello]<p>hello <p>cool</p></p>[/hello]</p>[/test]"  
+expand_with:
+  src: "this <r:test>looks </r:test> ok"
+  res: "this [test]looks [/test] ok"
+  
+params:
+  src: "some <r:test good='choice' nice='work'>things</r:test> are fine"
+  res: "some [test {= :good=>'choice', :nice=>'work'}]things[/test] are fine"
+
+empty_param:
+  src: "some <r:test good='' nice='work'>things</r:test> are fine"
+  res: "some [test {= :good=>'', :nice=>'work'}]things[/test] are fine"
+
+default_menu:
+  src: "the <r:test>menu</r:test> is nice"
+  res: "the [test]menu[/test] is nice"
+  
+include_menu:
+  src: "include_menu: <r:include template='/default/menu'/>"
+  res: "include_menu: the [test]menu[/test] is nice"
+
+named_parts:
+  src: "named_parts: <r:test><div id='lala'>lala</div> <r:void id='start'>start from here to <r:hello id='sub'>sub</r:hello></r:void></r:test> ok."
+  res: "named_parts: [test][void {= :id=>'lala'}]<div id='lala'>lala</div>[/void][void {= :id=>'start'}]start from here to [hello {= :id=>'sub'}]sub[/hello][/void][/test] ok."
+
+named_with_name:
+  src: "named_with_name: <head do='void' name='head'>...</head>"
+  res: "named_with_name: <head>...</head>"
+
+replace_named:
+  src: "replace_named: <r:include template='/named/with/name'><r:with part='head'>lalala</r:with>"
+  res: "replace_named: named_with_name: <head>lalala</head>"
+
+named_id:
+  src: "named_id: <p id='branding'>...</p>"
+  res: "named_id: <p id='branding'>...</p>"
+
+replace_with_do:
+  src: "replace_with_do: <r:include template='/named/id'><r:with part='branding' class='goal'>lalala</r:with></r:include>"
+  res: "replace_with_do: named_id: <p class='goal' id='branding'>lalala</p>"
+
+named_with_do:
+  src: "named_with_do: <p id='branding' do='test'>...</p>"
+  res: "named_with_do: [test {> :name=>'branding'}]<p id='branding'>...</p>[/test]"
+
+include_named_keep_method:
+  src: "IKM: <r:include template='/named/with/do'><r:with part='branding'>blah</r:with></r:include>"
+  res: "IKM: named_with_do: [test {= :part=>'branding'} {> :name=>'branding'}]<p id='branding'>blah</p>[/test]"
+
+include_set_method:
+  src: "ISM: <r:include template='/named/with/do'><r:with part='branding' method='hello'>blah</r:with></r:include>"
+  res: "ISM: named_with_do: <p id='branding'>hello world!</p>"
+
+include_part:
+  src: "IP: <r:include template='/named/parts' part='sub'/> PI."
+  res: "IP: hello world! PI."
+
+include_part_replace_tag:
+  src: "IP: <footer do='include' template='/named/parts' part='sub'/> PI."
+  res: "IP: <footer>hello world!</footer> PI."
+
+include_self:
+  src: "IS: I like <r:void id='sub'>sub <r:hello/></r:void> and <r:include template='/include/self' part='sub'/>"
+  res: "IS: I like sub hello world! and sub hello world!"
+
+a_b_c:
+  src: "<r:void id='a'>A<r:void id='b'>B<r:void id='c'>C</r:void></r:void></r:void>"
+  res: "ABC"
+
+include_self_included:
+  src: "<r:include template='/a/b/c'><r:with part='b'>X<r:include template='/include/self/included' part='y'/> and <r:void id='y'>Y</r:void></r:with></r:include>"
+  res: "AXY and Y"
+
+include_bad_part:
+  src: "IP: <r:include template='/named/parts' part='bus'/> PI."
+  res: "IP: <span class='parser_error'>[include] 'bus' not found in template '/named/parts'</span> PI."
+
+include_context:
+  src: "include_context: <r:include template='menu'/>"
+  res: "include_context: include_menu: the [test]menu[/test] is nice"
+
+infinite_loop:
+  src: "<r:include template='/infinite/loop'/>"
+  res: "<span class='parser_error'>[include] infinity loop: /infinite/loop --&gt; /infinite/loop</span>"
+  
+infinite_foo:
+  src: "<r:include template='bar'/>"
+  res: "<span class='parser_error'>[include] infinity loop: /infinite/foo --&gt; /infinite/bar --&gt; /infinite/foo</span>"
+  
+infinite_bar:
+  src: "<r:include template='foo'/>"
+  res: "<span class='parser_error'>[include] infinity loop: /infinite/bar --&gt; /infinite/foo --&gt; /infinite/bar</span>"
+  
+default_context:
+  src: "from other: <r:include template='menu'/> and <r:include template='/include/menu'/>"
+  res: "from other: the [test]menu[/test] is nice and include_menu: the [test]menu[/test] is nice"
+
+set_context:
+  src: "res:<r:test/> <r:set_context truc='machin'>src:<r:test/></r:set_context> res:<r:test/>"
+  res: "res:[test/] src:[test {> :truc=>'machin'}/] res:[test/]"
+  
+nested_set_context:
+  src: "<r:set_context var1='out' var2='foo'>1:<r:test/><r:set_context var1='in'>2:<r:test/></r:set_context>3:<r:test/></r:set_context>"
+  res: "1:[test {> :var1=>'out', :var2=>'foo'}/]2:[test {> :var1=>'in', :var2=>'foo'}/]3:[test {> :var1=>'out', :var2=>'foo'}/]"
+
+complex_example:
+  src: |
+    Some people say <r:hello/>
+    Some say <r:include template='/default/menu'/>
+      <ul class='list' do='set_context' life='ok'>
+        <li>truc</li>
+        <li>machin</li>
+        <li do='test'>sunny day</li>
+      </ul>
+    <r:set_context var='complex'><r:include template='/default/menu'/></r:set_context>
+  res: |
+    Some people say hello world!
+    Some say the [test]menu[/test] is nice
+      <ul class='list'>
+        <li>truc</li>
+        <li>machin</li>
+    [test {> :life=>'ok'}]    <li>sunny day</li>
+    [/test]  </ul>
+    the [test {> :var=>'complex'}]menu[/test] is nice
+
+unknown:
+  src:  "this looks bad: <r:system truc='lala'/>"
+  res: "this looks bad: <span class='parser_unknown'>&lt;r:system truc='lala'/&gt;</span>"
+  
+check_params:
+  src: "bad <r:missing/> params"
+  res: "bad [missing parameter(s) missing:good, night] params"
+
+check_params_partial:
+  src: "bad <r:missing good='ok'/> params"
+  res: "bad [missing parameter(s) missing:night] params"
+
+check_params_ok:
+  src: "bad <r:missing good='ok' night='hey'/> params"
+  res: "bad nothing missing params"
+
+doctype:
+  src: |
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    <title do='test'>node title</title>
+    end
+  res: |
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    [test]<title>node title</title>
+    [/test]end
+no_tag:
+  src: "<r:set_context ignore='test'>this is a <r:test>test</r:test>dog</r:set_context>"
+  res: "this is a dog"
+  
+html_comments:
+  src: "<r:test><r:hello/><!-- this is nothing > <r:hello/>  --></r:test>"
+  res: "[test][hello/]<!-- this is nothing > <r:hello/>  -->[/test]"
+
+html_comments_not_greedy:
+  src: "<r:test><!-- first --><r:hello/><!-- this is nothing > <r:hello/>  --></r:test>"
+  res: "[test]<!-- first -->[hello/]<!-- this is nothing > <r:hello/>  -->[/test]"
+
+html_do_comment:
+  src: "<r:test><r:hello/><!--|this is not a comment <r:hello/>  --></r:test>"
+  res: "[test][hello/]this is not a comment [hello/]  [/test]"
+
+simple_tag:
+  src: "<div class='clear'></div>"
+  res: "<div class='clear'></div>"
+
+do_simple:
+  src: "<r:test do='hello'/>"
+  res: "[test][hello/][/test]"
+  
+do_zafu:
+  src: "<p do='test' param='yo' do='hello' param='hey'>some thing</p>"
+  res: "[test {= :param=>'yo'}]<p>[hello {= :param=>'hey'}]some thing[/hello]</p>[/test]"
+  
+do_multiple:
+  src: "<r:test param='1' do='test' param='2' do='hello' param='3'/>"
+  res: "[test {= :param=>'1'}][test {= :param=>'2'}][hello {= :param=>'3'}/][/test][/test]"
+
+do_with_inner:
+  src: "<r:test do='hello'>a thing <r:hello/> here</r:test>"
+  res: "[test][hello]a thing [hello/] here[/hello][/test]"
+
+multiple_param:
+  src: "<r:test do='hello' param='1' param='2'>a thing <r:hello/> here</r:test>"
+  res: "[test][hello {= :param1=>'2', :param=>'1'}]a thing [hello/] here[/hello][/test]"
+
+ztag_tag:
+  src: "<r:hello tag='p'/>"
+  res: "<p>hello world!</p>"
+
+name:
+  src: "super: <r:void id='super'>hey <r:void id='man' do='text' text='ho'/></r:void>"
+  res: "super: hey ho"
+
+include_super:
+  src: "include_super: <r:include template='/name'><p do='with' part='super' do='hello'/>"
+  res: "include_super: super: <p>hello world!</p>"
+
+include_replace_same_with:
+  src: "IRSW: <r:include template='/include/super'><r:with part='super'/></r:include>nothing"
+  res: "IRSW: include_super: super: nothing"
+
+include_super_man:
+  src: "include_super: <r:include template='/name'><p class='foo' do='with' part='man' do='hello'/>"
+  res: "include_super: super: hey <p class='foo'>hello world!</p>"
+  
+include_part_far_away:
+  src: "IPFA: <r:include template='/include/super/man' part='super'/> AFPI."
+  res: "IPFA: hey <p class='foo'>hello world!</p> AFPI."
+    
+name_title:
+  src: "title: <h1 do='void' id='title' do='text' text='dummy'>blah <b do='void' id='comment'>nothing</b></h1>"
+  res: "title: <h1>dummy</h1>"
+
+ztag_same_name_as_tag:
+  src: "<r:test>this is a <test>test</test></r:test>"
+  res: "[test]this is a <test>test</test>[/test]"
+
+include_with:
+  src: "include_with: <r:include template='/name/title'><h1 do='with' part='title' do='hello'/></r:include>"
+  res: "include_with: title: <h1>hello world!</h1>"
+
+include_with_keep_name:
+  src: "keep name: <r:include template='/name/title'><h1 do='with' part='title'><r:hello/> <i  id='comment'>none</i></h1></r:include>"
+  res: "keep name: title: <h1>hello world! <i id='comment'>none</i></h1>"
+  
+include_include:
+  src: "from ii: <r:include template='/include/with/keep/name'><r:with part='comment'>rabbit</r:with></r:include>"
+  res: "from ii: keep name: title: <h1>hello world! <i id='comment'>rabbit</i></h1>"
+
+include_replace_same:
+  src: "from IRS: <r:include template='/include/super/man'><span do='with' part='man'>goldorak</span></r:include>"
+  res: "from IRS: include_super: super: hey <span class='foo'>goldorak</span>"
+
+part_tag_options:
+  src: "from PTO: <p class='foo' id='main' do='void'>hello</p>"
+  res: "from PTO: <p class='foo' id='main'>hello</p>"
+
+include_part_tag_options:
+  src: "from IPTO: <span do='include' template='/part/tag/options' part='main'/>"
+  res: "from IPTO: <span class='foo' id='main'>hello</span>"
+
+include_empty:
+  src: "include_empty: <r:include template='/name/title'><r:with part='title'/></r:include>"
+  res: "include_empty: title: "
+
+preserve_newlines:
+  src: |
+    <r:repeat><p do='test'>blah</p>
+    </r:repeat>ok
+    
+  res: |
+    [test]<p>blah</p>
+    [/test][test]<p>blah</p>
+    [/test]ok
+
+set_tag_param:
+  src: "<r:void class='test' tag='p'>blah</r:void>"
+  res: "<p class='test'>blah</p>"
+  
+static_form:
+  src: "<r:test><form action='hello'><p><input type='text' name='hoy' value='hili'/></p></form></r:test>"
+  res: "[test]<form action='hello'><p><input type='text' name='hoy' value='hili'/></p></form>[/test]"
+  
+form:
+  src: "<r:test><p do='form'><form action='hello'><p><input type='text' name='hoy' value='hili'/></p></form></p></r:test>"
+  res: "[test][form]<p>[form_tag {= :action=>'hello'}]<p>[input {= :name=>'hoy', :type=>'text', :value=>'hili'}/]</p>[/form_tag]</p>[/form][/test]"
+
+cdata:
+  src: "<foo><![CDATA[<r:hello/>]]></foo>"
+  res: "<foo><![CDATA[hello world!]]></foo>"
+
+cdata_more:
+  src: "<foo><![CDATA[<r:hello/> blah <p do='test'> a <r:hello/></p>]]></foo>"
+  res: "<foo><![CDATA[hello world! blah [test]<p> a [hello/]</p>[/test]]]></foo>"
+  
+quoting:
+  src: "<p double=\"waga'doom\" yo=\"waga'dou\\\"gou\" simple='25\"' do='void'>blah</p>"
+  res: "<p double=\"waga'doom\" simple='25\"' yo=\"waga'dou\\\"gou\">blah</p>"
+  
+expand_with:
+  src: "<div do='expand_with' host='example.com'>...<r:inspect/></div>"
+  res: "<div>...[inspect {> 'exp_host'=>'\"example.com\"'}/]</div>"
