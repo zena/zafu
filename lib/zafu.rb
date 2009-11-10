@@ -1,6 +1,5 @@
-$:.unshift(File.dirname(__FILE__)) unless
-  $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
+require 'zafu/parser'
+require 'zafu/template'
 
-module Zafu
-  VERSION = '0.0.1'
-end
+ActionView::Template.register_template_handler(:zafu, Zafu::Handler)
+ActionView::Template.register_template_handler(:html, Zafu::Handler)

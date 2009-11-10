@@ -1,3 +1,0 @@
-menu:
-  src: "var a: <r:set_context menu='true'><r:void name='a'><r:hello/></r:void></r:set_context>"
-  res: "var a: hello world!"
