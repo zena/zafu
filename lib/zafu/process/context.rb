@@ -1,10 +1,10 @@
 module Zafu
-  module Parser
-    module ZafuContext
+  module Process
+    module Context
       def r_each
         if node_class.kind_of?(Array)
           out "<% #{node}.each do |#{var}| -%>"
-          out expand_with(:node => var, :class => node_class.first)
+          out render_html_tag(expand_with(:node => var, :class => node_class.first))
           out "<% end -%>"
         end
       end
@@ -29,6 +29,6 @@ module Zafu
           @var = "var1"
         end
       end
-    end
-  end
-end
+    end # Context
+  end # Process
+end # Zafu

@@ -1,8 +1,8 @@
 require 'rubyless'
 
 module Zafu
-  module Parser
-    module RubyLessTags
+  module Process
+    module RubyLess
       include ::RubyLess::SafeClass
 
       def safe_method_type(signature)
@@ -22,7 +22,7 @@ module Zafu
       end
 
       def r_unknown
-        rubyless_expand(RubyLess.translate(method_with_arguments, self))
+        rubyless_expand(::RubyLess.translate(method_with_arguments, self))
       rescue
         super
       end
@@ -53,13 +53,13 @@ module Zafu
             out "<%= #{res} %>"
           elsif res.could_be_nil?
             out "<% if #{var} = #{res} -%>"
-            out expand_with(:node => var, :class => res.klass)
+            out render_html_tag(expand_with(:node => var, :class => res.klass))
             out "<% end -%>"
           else
             out "<% #{var} = #{res} -%>"
-            out expand_with(:node => var, :class => res.klass)
+            out render_html_tag(expand_with(:node => var, :class => res.klass))
           end
         end
-    end # RubyLessTags
-  end # Parser
+    end # RubyLess
+  end # Process
 end # Zafu

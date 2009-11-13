@@ -1,6 +1,6 @@
 module Zafu
-  module Parser
-    module ZafuTags
+  module Process
+    module HTML
       attr_accessor :html_tag, :html_tag_params, :name, :sub_do
 
       # Replace the 'original' element in the included template with our new version.
@@ -192,6 +192,6 @@ module Zafu
           res + ">#{inner}"
         end
       end
-    end # ZafuTags
-  end # Parser
+    end # HTML
+  end # Process
 end # Zafu

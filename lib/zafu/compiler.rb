@@ -1,12 +1,13 @@
-require 'zafu/parser/zafu_rules'
-require 'zafu/parser/zafu_tags'
-require 'zafu/parser/ruby_less_tags'
+require 'zafu/parsing_rules'
+require 'zafu/process/html'
+require 'zafu/process/ruby_less'
+require 'zafu/process/context'
 
 module Zafu
   Compiler = Zafu::Parser.parser_with_rules(
-    Zafu::Parser::ZafuRules,
-    Zafu::Parser::ZafuTags,
-    Zafu::Parser::ZafuContext,
-    Zafu::Parser::RubyLessTags
+    Zafu::ParsingRules,
+    Zafu::Process::HTML,
+    Zafu::Process::Context,
+    Zafu::Process::RubyLess
   )
 end
