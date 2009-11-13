@@ -1,4 +1,4 @@
 == 0.1
 
 * 1 major enhancement
-  * Hello world compilation
+  * Compiles 'html' with rubyless declarations
