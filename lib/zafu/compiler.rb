@@ -1,10 +1,14 @@
-require 'zafu/parsing_rules'
-require 'zafu/process/html'
-require 'zafu/process/ruby_less'
-require 'zafu/process/context'
+begin
+  dir = File.dirname(__FILE__)
+  require "#{dir}/parsing_rules"
+  require "#{dir}/process/html"
+  require "#{dir}/process/ruby_less"
+  require "#{dir}/node_context"
+  require "#{dir}/process/context"
+end
 
 module Zafu
-  Compiler = Zafu::Parser.parser_with_rules(
+  Compiler = Zafu.parser_with_rules(
     Zafu::ParsingRules,
     Zafu::Process::HTML,
     Zafu::Process::Context,

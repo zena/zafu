@@ -4,7 +4,7 @@ module Zafu
       def r_each
         if node_class.kind_of?(Array)
           out "<% #{node}.each do |#{var}| -%>"
-          out render_html_tag(expand_with(:node => var, :class => node_class.first))
+          out render_html_tag(expand_with_node(var, node_class.first))
           out "<% end -%>"
         end
       end
@@ -14,11 +14,24 @@ module Zafu
       end
 
       def node_class
-        @context[:class]
+        @context[:node].klass
       end
 
       def node
-        @context[:node]
+        @context[:node].name
+      end
+
+      def node_context(klass)
+        @context[:node].get(klass)
+      end
+
+      def expand_with_node(name, klass)
+        expand_with(:node => context[:node].move_to(name, klass))
+      end
+
+      def context_with_node(name, klass)
+        context = @context.dup
+        context[:node] = context[:node].move_to(name, klass)
       end
 
       def var

@@ -5,6 +5,10 @@ module Zafu
       base.helper Zafu::Helper
     end
 
+    def zafu_node(name, klass)
+      zafu_context[:node] = Zafu::NodeContext.new(name, klass)
+    end
+
     def zafu_context
       @zafu_context ||= {}
     end

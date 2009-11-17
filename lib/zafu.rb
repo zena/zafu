@@ -1,6 +1,11 @@
-require 'zafu/parser'
-require 'zafu/compiler'
-require 'zafu/template'
+begin
+  dir = File.dirname(__FILE__)
+  require "#{dir}/zafu/parser"
+  require "#{dir}/zafu/compiler"
+  require "#{dir}/zafu/template"
+end
 
-ActionView::Template.register_template_handler(:zafu, Zafu::Handler)
-ActionView::Template.register_template_handler(:html, Zafu::Handler)
+if defined?(ActionView)
+  ActionView::Template.register_template_handler(:zafu, Zafu::Handler)
+  ActionView::Template.register_template_handler(:html, Zafu::Handler)
+end

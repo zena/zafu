@@ -4,8 +4,10 @@ module Zafu
 
     def compile(template)
       @template = template
-      @helper   = Thread.current[:view]
-      Zafu::Template.new(template, self, @helper).src
+      helper   = Thread.current[:view]
+      ast = Zafu::Template.new(template, self)
+      context = helper.zafu_context.merge(:helper => helper)
+      ast.to_ruby('@output_buffer', context)
     end
 
     def get_template_text(opts = {})

@@ -32,7 +32,7 @@ module Zafu
         super && @html_tag_params == {} && @html_tag.nil?
       end
 
-      def before_render
+      def before_process
         return unless super
         @html_tag_done = false
         unless @html_tag
@@ -49,7 +49,7 @@ module Zafu
         true
       end
 
-      def after_render(text)
+      def after_process(text)
         res = render_html_tag(super)
         @html_tag_params = @html_tag_params_bak
         res
