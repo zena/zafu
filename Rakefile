@@ -27,7 +27,7 @@ PROJ.rubyforge.name = 'zafu'
 PROJ.readme_file = 'README.rdoc'
 
 PROJ.spec.opts << '--color'
-PROJ.gem.dependencies << ['rubyless', '>= 0.3.5']
+PROJ.gem.dependencies << ['rubyless', '>= 0.4.0']
 PROJ.gem.development_dependencies << ['shoulda', '>= 2.10.2']
 
 # EOF

@@ -8,14 +8,17 @@ module Zafu
       def safe_method_type(signature)
         if context = context_from_signature(signature)
           context
-        elsif helper.respond_to?(:safe_method_type) &&
-           type = helper.safe_method_type(signature)
+        elsif type = safe_method_from(helper, signature)
           type
-        elsif helper.respond_to?(:helpers) &&
-              type = ::RubyLess::SafeClass.safe_method_type_for(helper.helpers, signature)
+        elsif helper.respond_to?(:helpers) && type = safe_method_from(helper.helpers, signature)
           type
-        elsif type = ::RubyLess::SafeClass.safe_method_type_for(node_class, signature)
+        elsif type = safe_method_from(node_class, signature)
           type.merge(:method => "#{node}.#{type[:method]}")
+        elsif signature.size == 1
+          # sigle method, try inserting current node
+          if type = safe_method_type(signature + [node_class])
+            type.merge(:method => "#{type[:method]}(#{node})")
+          end
         else
           raise ::RubyLess::NoMethodError.new(nil, helper, signature)
         end
@@ -90,6 +93,14 @@ module Zafu
             return nil
           end
           {:class => context.klass, :method => context.name}
+        end
+
+        def safe_method_from(context, signature)
+          if context.respond_to?(:safe_method_type)
+            context.safe_method_type(signature)
+          else
+            ::RubyLess::SafeClass.safe_method_type_for(context, signature)
+          end
         end
 
     end # RubyLess

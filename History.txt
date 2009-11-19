@@ -1,4 +1,7 @@
-== 0.1
+== 0.1.0
 
 * 1 major enhancement
+  * Uses helpers to resolve methods
   * Compiles 'html' with rubyless declarations
+  * Guesses main ivar from view
+  * Tries to resolve method by adding current node parameter

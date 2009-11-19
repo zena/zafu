@@ -1,7 +1,7 @@
 module Zafu
   module ControllerMethods
     def self.included(base)
-      base.helper_method :zafu_context, :get_template_text
+      base.helper_method :zafu_context, :get_template_text, :template_url_for_asset
       base.helper Zafu::Helper
     end
 
@@ -15,6 +15,10 @@ module Zafu
 
     def get_template_text(opts = {})
       nil
+    end
+
+    def template_url_for_asset(opts)
+      opts[:src]
     end
   end
 end
