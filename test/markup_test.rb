@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper.rb'
+require 'test_helper'
 
 class String
   def blank?
@@ -12,27 +12,27 @@ class NodeContextTest < Test::Unit::TestCase
   context 'Parsing parameters' do
     should 'retrieve values escaped with single quotes' do
       h = {:class => 'worker', :style => 'tired'}
-      assert_equal h, Markup::parse_params("class='worker' style='tired'")
+      assert_equal h, Markup.parse_params("class='worker' style='tired'")
     end
 
     should 'retrieve values escaped with double quotes' do
       h = {:class => 'worker', :style => 'tired'}
-      assert_equal h, Markup::parse_params('class="worker" style="tired"')
+      assert_equal h, Markup.parse_params('class="worker" style="tired"')
     end
 
     should 'retrieve values escaped with mixed quotes' do
       h = {:class => 'worker', :style => 'tired'}
-      assert_equal h, Markup::parse_params('class=\'worker\' style="tired"')
+      assert_equal h, Markup.parse_params('class=\'worker\' style="tired"')
     end
 
     should 'properly handle escaped single quotes' do
       h = {:class => "that's nice", :style => 'tired'}
-      assert_equal h, Markup::parse_params("class='that\\\'s nice' style='tired'")
+      assert_equal h, Markup.parse_params("class='that\\\'s nice' style='tired'")
     end
 
     should 'properly handle escaped double quotes' do
       h = {:class => '30"', :style => 'tired'}
-      assert_equal h, Markup::parse_params('class="30\\"" style="tired"')
+      assert_equal h, Markup.parse_params('class="30\\"" style="tired"')
     end
   end
 

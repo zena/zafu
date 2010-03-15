@@ -1,5 +1,8 @@
 module Zafu
   module Process
+    # This module manages the change of contexts by opening (each) or moving into the NodeContext.
+    # The '@context' holds many information on the current compilation environment. Inside this
+    # context, the "node" context holds information on the type of "this" (first responder).
     module Context
       def r_each
         if node.klass.kind_of?(Array)

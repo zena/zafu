@@ -32,7 +32,7 @@ module Zafu
             # FIXME: reject all stored elements in a  better way then this
             k.kind_of?(String) && k =~ /\ANode_\w/
           end
-          @markup[:done] = false
+          @markup.done = false
           @markup.params.merge!(:id=>erb_dom_id)
           @context[:scope_node] = node if @context[:scope_node]
           out expand_with(:node => node)
@@ -75,7 +75,7 @@ module Zafu
             end
 
             # RENDER
-            @markup[:done] = false
+            @markup.done = false
             @markup.params.merge!(:id=>erb_dom_id)
           end
 

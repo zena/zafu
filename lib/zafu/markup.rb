@@ -69,7 +69,7 @@ module Zafu
       if p.kind_of?(Hash)
         @params = p
       else
-        @params = Markup::parse_params(p)
+        @params = Markup.parse_params(p)
       end
     end
 

@@ -4,22 +4,28 @@ module Zafu
   module Process
     module RubyLess
       include ::RubyLess::SafeClass
-
+      # Actual method resolution. The lookup first starts in the current helper. If nothing is found there, it
+      # searches inside a 'helpers' module and finally looks into the current node_context.
+      # If nothing is found at this stage, we prepend the method with the current node and start over again.
       def safe_method_type(signature, added_options = false)
         if type = context_from_signature(signature)
+          # Resolve @page, @node
           type
         elsif type = safe_method_from(helper, signature)
+          # Resolve template helper methods
           type
         elsif helper.respond_to?(:helpers) && type = safe_method_from(helper.helpers, signature)
+          # Resolve by looking at the included helpers
           type
-        elsif node_class.kind_of?(Class) && type = safe_method_from(node_class, signature)
+        elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
+          # Resolve node context methods (xxx.foo, xxx.bar)
           type.merge(:method => "#{node.name}.#{type[:method]}")
-        elsif !added_options
-          # sigle method, try inserting current node
+        elsif node && !added_options
+          # sigle method, try inserting current node before arguments: link("foo") becomse link(var1, "foo")
           signature_with_node = signature.dup
-          signature_with_node.insert(1, node_class)
+          signature_with_node.insert(1, node.klass)
           if type = safe_method_type(signature_with_node, added_options = true)
-            type = type.merge(:prepend_args => ::RubyLess::TypedString.new(node, :class => node_class))
+            type = type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
             type
           else
             raise ::RubyLess::NoMethodError.new(nil, helper, signature)
@@ -31,6 +37,8 @@ module Zafu
         end
       end
 
+      # Resolve unknown methods by using RubyLess in the current compilation context (the
+      # translate method in RubyLess will call 'safe_method_type' in this module).
       def r_unknown
         rubyless_expand(::RubyLess.translate(method_with_arguments, self))
       rescue ::RubyLess::NoMethodError => err
@@ -39,8 +47,9 @@ module Zafu
         parser_error(err.message)
       end
 
+      # Print documentation on the current node type.
       def r_m
-        out "<div class='rubyless-m'><h3>Documentation for <b>#{node_class}</b></h3>"
+        out "<div class='rubyless-m'><h3>Documentation for <b>#{node.klass}</b></h3>"
         out "<ul>"
         ::RubyLess::SafeClass.safe_methods_for(node_class).each do |signature, opts|
           opts = opts.dup
@@ -84,11 +93,11 @@ module Zafu
             out "<%= #{res} %>"
           elsif res.could_be_nil?
             out "<% if #{var} = #{res} -%>"
-            out render_html_tag(expand_with_node(var, res.klass))
+            out @markup.wrap(expand_with_node(var, res.klass))
             out "<% end -%>"
           else
             out "<% #{var} = #{res} -%>"
-            out render_html_tag(expand_with_node(var, res.klass))
+            out @markup.wrap(expand_with_node(var, res.klass))
           end
         end
 

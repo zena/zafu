@@ -34,7 +34,7 @@ module Zafu
 
       def before_process
         return unless super
-        @markup[:done] = false
+        @markup.done = false
         unless @markup.tag
           if @markup.tag = @params.delete(:tag)
             @markup.params = {}
@@ -45,18 +45,18 @@ module Zafu
           end
         end
         # [each] is run many times with different roles. Some of these change html_tag_params.
-        @markup.params_bak = @markup.params.dup
+        @markup_bak = @markup.dup
         true
       end
 
       def after_process(text)
-        res = render_html_tag(super)
-        @markup.params = @markup.params_bak
+        res = @markup.wrap(super)
+        @markup = @markup_bak
         res
       end
 
       def inspect
-        @markup[:done] = false
+        @markup.done = false
         res = super
         if @markup.tag
           if res =~ /\A\[(\w+)(.*)\/\]\Z/m
@@ -69,7 +69,7 @@ module Zafu
       end
 
       def r_ignore
-        @markup[:done] = true
+        @markup.done = true
         ''
       end
 
@@ -86,7 +86,7 @@ module Zafu
             type = :link
           end
         when 'style'
-          @markup[:done] = true
+          @markup.done = true
           return expand_with.gsub(/url\(('|")(.*?)\1\)/) do
             if $2[0..6] == 'http://'
               $&
@@ -107,7 +107,7 @@ module Zafu
         end
 
         res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup[:done] = true
+        @markup.done = true
         inner = expand_with
         if inner == ''
           res + "/>"
@@ -118,7 +118,7 @@ module Zafu
 
       def r_form
         res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup[:done] = true
+        @markup.done = true
         inner = expand_with
         if inner == ''
           res + "/>"
@@ -129,7 +129,7 @@ module Zafu
 
       def r_select
         res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup[:done] = true
+        @markup.done = true
         inner = expand_with
         if inner == ''
           res + "></#{@markup.tag}>"
@@ -140,7 +140,7 @@ module Zafu
 
       def r_input
         res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup[:done] = true
+        @markup.done = true
         inner = expand_with
         if inner == ''
           res + "/>"
@@ -151,7 +151,7 @@ module Zafu
 
       def r_textarea
         res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup[:done] = true
+        @markup.done = true
         inner = expand_with
         if inner == ''
           res + "/>"

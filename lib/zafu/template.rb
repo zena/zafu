@@ -8,12 +8,12 @@ module Zafu
       end
     end
 
-    def to_erb(context)
+    def to_erb(context = {})
       @ast.process(context)
     end
 
-    def to_ruby(output_buffer, context = {})
-      src = ::ERB.new("<% __in_erb_template=true %>#{to_erb(context)}", nil, '-', output_buffer).src
+    def to_ruby(context = {})
+      src = ::ERB.new("<% __in_erb_template=true %>#{to_erb(context)}", nil, '-').src
 
       # Ruby 1.9 prepends an encoding to the source. However this is
       # useless because you can only set an encoding on the first line

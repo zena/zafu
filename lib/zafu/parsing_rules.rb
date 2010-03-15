@@ -20,7 +20,7 @@ module Zafu
       @markup.params = @options.delete(:html_tag_params) # @html_tag_params
 
       # have we already wrapped the result with our tag ?
-      @markup[:done] = false # @html_tag_done
+      @markup.done = false # @html_tag_done
 
       # end_tag is used to know when to close parsing in sub-do
       # Example:
@@ -43,7 +43,7 @@ module Zafu
       # puts "[#{@markup[:space_before]}(#{@method})#{@markup[:space_after]}]"
       if @params =~ /\A([^>]*?)do\s*=('|")([^\2]*?[^\\])\2([^>]*)\Z/
         # we have a sub 'do'
-        @params = Markup::parse_params($1)
+        @params = Markup.parse_params($1)
         @sub_do = $3 # this is used by replace_with (FIXME)
 
         opts = {:method=>$3, :params=>$4}
@@ -55,7 +55,7 @@ module Zafu
         @markup.space_after = sub.markup.space_after
         sub.markup.space_after = ""
       else
-        @params = parse_params(@params)
+        @params = Markup.parse_params(@params)
       end
 
       # set name used for include/replace from html_tag if not allready set by superclass

@@ -1,1 +1,1 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'zafu')
+require 'zafu' #File.join(File.dirname(__FILE__), '..', 'lib', 'zafu')
