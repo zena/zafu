@@ -1,53 +1,69 @@
 module Zafu
   module ParsingRules
+    # The context informs the rendering element about the current Node, node class, existing ids, etc. The
+    # context is inherited by sub-elements.
     attr_reader :context
+
+    # The helper is used to connect the compiler to the world of the application (read/write templates, access traductions, etc)
     attr_reader :helper
+
+    # The markup (of class Markup) holds information on the tag (<li>), tag attributes (.. class='foo') and
+    # indentation information that should be used when rendered. This context is not inherited.
+    attr_accessor :markup
 
     # This callback is run just after the block is initialized (Parser#initialize).
     def start(mode)
-      # html_tag
-      @html_tag = @options.delete(:html_tag)
-      @html_tag_params = parse_params(@options.delete(:html_tag_params))
+      # tag_context
+      @markup = Markup.new(@options.delete(:html_tag))
 
-      # end_tag
-      @end_tag = @html_tag || @options.delete(:end_do) || @options.delete(:end_tag) || "r:#{@method}"
+      # html_tag
+      @markup.params = @options.delete(:html_tag_params) # @html_tag_params
+
+      # have we already wrapped the result with our tag ?
+      @markup[:done] = false # @html_tag_done
+
+      # end_tag is used to know when to close parsing in sub-do
+      # Example:
+      # <li do='each' do='images'>
+      #   <ul>
+      #     <li><r:link/></li> <!-- do not close outer LI now: @end_tag_count != 0 -->
+      #   </ul>
+      # </li> <!-- close outer LI now: @end_tag_count == 0 -->
+      #
+      @end_tag = @markup.tag || @options.delete(:end_tag) || "r:#{@method}"
       @end_tag_count  = 1
 
       # code indentation
-      @space_before = @options[:space_before]
-      @options.delete(:space_before)
+      @markup.space_before = @options.delete(:space_before) # @space_before
 
       # form capture (input, select, textarea, form)
+      # FIXME: what is this ???
       @options[:form] ||= true if @method == 'form'
 
-      # puts "[#{@space_before}(#{@method})#{@space_after}]"
+      # puts "[#{@markup[:space_before]}(#{@method})#{@markup[:space_after]}]"
       if @params =~ /\A([^>]*?)do\s*=('|")([^\2]*?[^\\])\2([^>]*)\Z/
         # we have a sub 'do'
-        @params = parse_params($1)
-        @sub_do = $3 # this is used by replace_with
+        @params = Markup::parse_params($1)
+        @sub_do = $3 # this is used by replace_with (FIXME)
 
         opts = {:method=>$3, :params=>$4}
 
         # the matching zafu tag will be parsed by the last 'do', we must inform it to halt properly :
-        opts[:end_do] = @end_tag
+        opts[:end_tag] = @end_tag
 
         sub = make(:void, opts)
-        @space_after = sub.instance_variable_get(:@space_after)
-        sub.instance_variable_set(:@space_after,"")
+        @markup.space_after = sub.markup.space_after
+        sub.markup.space_after = ""
       else
         @params = parse_params(@params)
       end
 
       # set name used for include/replace from html_tag if not allready set by superclass
-      @name = @options[:name] || @params[:name] || @params[:id] || @html_tag_params[:id]
+      @name = @options[:name] || @params[:name] || @params[:id] || @markup.params[:id]
 
-      if !@html_tag && (@html_tag = @params.delete(:tag))
-        # get html tag parameters from @params
-        @html_tag_params = {}
-        [:class, :id].each do |k|
-          next unless @params[k]
-          @html_tag_params[k] = @params.delete(k)
-        end
+      if !@markup.tag && (@markup.tag = @params.delete(:tag))
+        # Extract html tag parameters from @params
+        @markup.steal_html_params_from(@params)
       end
 
       if @method == 'include'
@@ -97,7 +113,7 @@ module Zafu
             else
               eat $&
             end
-            @space_after = $2
+            @markup.space_after = $2
             leave
           else
             # keep the tag (false alert)
@@ -188,12 +204,12 @@ module Zafu
       if @text =~ /\A<(\w*)([^>]*?)(\/?)>/
         eat $&
         @method = 'rename_asset'
-        @html_tag = @end_tag = $1
+        @markup.tag = @end_tag = $1
         closed = ($3 != '')
         @params = parse_params($2)
         if closed
           leave(:asset)
-        elsif @html_tag == 'script'
+        elsif @markup.tag == 'script'
           enter(:void)
         else
           enter(:inside_asset)
@@ -219,7 +235,7 @@ module Zafu
       if @text =~ /\A(.*?)<\/style>/m
         flush $&
         @method = 'rename_asset'
-        @html_tag = 'style'
+        @markup.tag = 'style'
         leave(:style)
       else
         # error

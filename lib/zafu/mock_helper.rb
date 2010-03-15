@@ -8,7 +8,7 @@ module Zafu
 
     def get_template_text(opts)
       src    = opts[:src]
-      folder = (opts[:current_folder] && opts[:current_folder] != '') ? opts[:current_folder][1..-1].split('/') : []
+      folder = (opts[:base_path] && opts[:base_path] != '') ? opts[:base_path][1..-1].split('/') : []
       src = src[1..-1] if src[0..0] == '/' # just ignore the 'relative' or 'absolute' tricks.
       url = (folder + src.split('/')).join('_')
       if test = @strings[url]

@@ -97,4 +97,64 @@ class NodeContextTest < Test::Unit::TestCase
       assert_equal Page, context.klass
     end
   end
+
+  context 'Generating a dom id' do
+    context 'in a blank context' do
+      setup do
+        @context = NodeContext.new('@foo', Page)
+      end
+
+      should 'return the node name in DOM id' do
+        assert_equal '<%= @foo.zip %>', @context.dom_id
+      end
+    end
+
+    context 'in a hierarchy of contexts' do
+      setup do
+        @a       = NodeContext.new('@node', Page)
+        @b       = NodeContext.new('var1', [Page], @a)
+        @c       = NodeContext.new('var2', Page, @b)
+        @context = NodeContext.new('var3', Page, @c)
+      end
+
+      context 'with parents as dom_scopes' do
+        setup do
+          @b.dom_scope!
+          @c.dom_scope!
+        end
+
+        should 'use dom_scopes' do
+          assert_equal '<%= var1.zip %>_<%= var2.zip %>_<%= var3.zip %>', @context.dom_id
+        end
+      end
+
+      context 'with ancestors and self as dom_scopes' do
+        setup do
+          @a.dom_scope!
+          @context.dom_scope!
+        end
+
+        should 'not use self twice' do
+          assert_equal '<%= @node.zip %>_<%= var3.zip %>', @context.dom_id
+        end
+      end
+
+      context 'with a parent defining a dom_prefix' do
+        setup do
+          @b.dom_prefix = 'cart'
+        end
+
+        should 'use dom_prefix' do
+          assert_equal 'cart_<%= var3.zip %>', @context.dom_id
+        end
+      end
+
+    end
+  end
 end
+
+
+
+
+
+

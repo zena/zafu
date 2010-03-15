@@ -9,30 +9,29 @@ module Zafu
   end
 
   class Parser
-    attr_accessor :text, :method, :pass, :options, :blocks, :params, :ids, :defined_ids, :parent
+    attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent
+    # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
+    attr_accessor :params
 
     class << self
-      def new_with_url(url, opts={})
+      def new_with_url(path, opts={})
         helper = opts[:helper] || Zafu::MockHelper.new
-        text, absolute_url = self.get_template_text(url,helper)
-        current_folder     = absolute_url ? absolute_url.split('/')[1..-2].join('/') : nil
-        self.new(text, :helper=>helper, :current_folder=>current_folder, :included_history=>[absolute_url], :root => url)
+        text, fullpath, base_path = self.get_template_text(path, helper)
+        self.new(text, :helper => helper, :base_path => base_path, :included_history => [fullpath])
       end
 
       # Retrieve the template text in the current folder or as an absolute path.
       # This method is used when 'including' text
-      def get_template_text(url, helper, current_folder=nil)
-        if (url[0..0] != '/') && current_folder
-          url = "#{current_folder}/#{url}"
-        end
-
-        res = helper.send(:get_template_text, :src=>url, :current_folder=>'')
-        return [parser_error("template '#{url}' not found", 'include'), nil, nil] unless res
-        text, url, node = *res
-        url = "/#{url}" unless url[0..0] == '/' # has to be an absolute path
-        return [text, url, node]
+      def get_template_text(path, helper, base_path=nil)
+        res = helper.send(:get_template_text, path, base_path)
+        return [parser_error("template '#{path}' not found", 'include'), nil, nil] unless res
+        text, fullpath, base_path = *res
+        return res
       end
 
+      def parser_error(message, method)
+        "<span class='parser_error'><span class='method'>#{method}</span> #{message}</span>"
+      end
     end
 
     def initialize(text, opts={})
@@ -196,7 +195,7 @@ module Zafu
       # fetch text
       @options[:included_history] ||= []
 
-      included_text, absolute_url = self.class.get_template_text(@params[:template], @options[:helper], @options[:current_folder])
+      included_text, absolute_url, base_path = self.class.get_template_text(@params[:template], @options[:helper], @options[:base_path])
 
       if absolute_url
         absolute_url += "::#{@params[:part].gsub('/','_')}" if @params[:part]
@@ -205,10 +204,9 @@ module Zafu
           included_text = parser_error("infinity loop: #{(@options[:included_history] + [absolute_url]).join(' --&gt; ')}", 'include')
         else
           included_history  = @options[:included_history] + [absolute_url]
-          current_folder    = absolute_url.split('/')[1..-2].join('/')
         end
       end
-      res = self.class.new(included_text, :helper=>@options[:helper], :current_folder=>current_folder, :included_history=>included_history, :part => @params[:part], :root=>@options[:root]) # we set :part to avoid loop failure when doing self inclusion
+      res = self.class.new(included_text, :helper => @options[:helper], :base_path => base_path, :included_history => included_history, :part => @params[:part]) # we set :part to avoid loop failure when doing self inclusion
 
       if @params[:part]
         if iblock = res.ids[@params[:part]]
@@ -398,42 +396,6 @@ module Zafu
       @stack = []
     end
 
-    # Parse parameters into a hash. This parsing supports multiple values for one key by creating additional keys:
-    # <tag do='hello' or='goodbye' or='gotohell'> creates the hash {:do=>'hello', :or=>'goodbye', :or1=>'gotohell'}
-    def parse_params(text)
-      return {} unless text
-      return text if text.kind_of?(Hash)
-      params = {}
-      rest = text.strip
-      while (rest != '')
-        if rest =~ /(.+?)=/
-          key = $1.strip.to_sym
-          rest = rest[$&.length..-1].strip
-          if rest =~ /('|")(|[^\1]*?[^\\])\1/
-            rest = rest[$&.length..-1].strip
-            key_counter = 1
-            while params[key]
-              key = "#{key}#{key_counter}".to_sym
-              key_counter += 1
-            end
-
-            if $1 == "'"
-              params[key] = $2.gsub("\\'", "'")
-            else
-              params[key] = $2.gsub('\\"', '"')
-            end
-          else
-            # error, bad format, return found params.
-            break
-          end
-        else
-          # error, bad format
-          break
-        end
-      end
-      params
-    end
-
     def check_params(*args)
       missing = []
       if args[0].kind_of?(Array)
@@ -565,7 +527,7 @@ module Zafu
     end
 
     def parser_error(message, method = @method)
-      "<span class='parser_error'><span class='method'>#{method}</span> #{message}</span>"
+      self.class.parser_error(message, method)
     end
   end # Parser
 end # Zafu

@@ -11,22 +11,22 @@ module Zafu
       ast = Zafu::Template.new(template, self)
       context = helper.zafu_context.merge(:helper => helper)
       context[:node] ||= get_zafu_node_from_view(helper)
-      ast.to_ruby('@output_buffer', context)
+      rb = ast.to_ruby('@output_buffer', context)
+      ";@erb = %q{#{ast.to_erb(context)}};#{rb}"
     end
 
-    def get_template_text(opts = {})
-      if opts[:src] == @template.path && opts[:current_folder] == ''
-        [@template.source, @template.path, nil]
+    def get_template_text(path, base_path)
+      if path == @template.path && base_path.nil?
+        [@template.source, @template.path, @template.base_path]
       else
-        # read template text from views...
-        nil
+        Thread.current[:view].get_template_text(path, base_path)
       end
     end
 
     private
       def get_zafu_node_from_view(view)
         controller = view.controller
-        if controller.class.to_s =~ /\A([A-Z]\w+)s?[A-Z]/
+        if controller.class.to_s =~ /\A([A-Z]\w+?)s?[A-Z]/
           ivar = "@#{$1.downcase}"
           if var = controller.instance_variable_get(ivar.to_sym)
             name  = ivar
