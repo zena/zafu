@@ -102,13 +102,88 @@ class NodeContextTest < Test::Unit::TestCase
   context 'Setting a static param' do
     setup do
       @markup = Markup.new('p')
-      @markup.dyn_params[:foo] = 'one'
-      @markup.set_params(:foo => '<%= @node.two %>')
+      @markup.dyn_params[:foo] = '<%= @node.two %>'
+      @markup.set_params(:foo => 'one')
     end
 
     should 'clear a dynamic param with same key' do
       assert_nil @markup.dyn_params[:foo]
-      assert_equal '<%= @node.two %>', @markup.params[:foo]
+      assert_equal 'one', @markup.params[:foo]
+    end
+  end
+
+
+  context 'Appending a static param' do
+    context 'on a static param' do
+      setup do
+        @markup = Markup.new('p')
+        @markup.set_params(:class => 'simple')
+      end
+
+      should 'append param in the static params' do
+        @markup.append_param(:class, 'mind')
+        assert_equal 'simple mind', @markup.params[:class]
+      end
+    end
+
+    context 'on a dynamic param' do
+      setup do
+        @markup = Markup.new('p')
+        @markup.set_dyn_params(:class => '<%= @foo %>')
+      end
+
+      should 'append param in the dynamic params' do
+        @markup.append_param(:class, 'bar')
+        assert_equal '<%= @foo %> bar', @markup.dyn_params[:class]
+      end
+    end
+
+    context 'on an empty param' do
+      setup do
+        @markup = Markup.new('p')
+      end
+
+      should 'set param in the static params' do
+        @markup.append_param(:class, 'bar')
+        assert_equal 'bar', @markup.params[:class]
+      end
+    end
+  end
+
+  context 'Appending a dynamic param' do
+    context 'on a static param' do
+      setup do
+        @markup = Markup.new('p')
+        @markup.set_params(:class => 'simple')
+      end
+
+      should 'copy the static param in the dynamic params' do
+        @markup.append_dyn_param(:class, '<%= @mind %>')
+        assert_equal 'simple <%= @mind %>', @markup.dyn_params[:class]
+      end
+    end
+
+    context 'on a dynamic param' do
+      setup do
+        @markup = Markup.new('p')
+        @markup.set_dyn_params(:class => '<%= @foo %>')
+      end
+
+      should 'append param in the dynamic params' do
+        @markup.append_dyn_param(:class, '<%= @bar %>')
+        assert_equal '<%= @foo %> <%= @bar %>', @markup.dyn_params[:class]
+      end
+    end
+
+    context 'on an empty param' do
+      setup do
+        @markup = Markup.new('p')
+      end
+
+      should 'set param in the dynamic params' do
+        @markup.append_dyn_param(:class, '<%= @bar %>')
+        assert_equal '<%= @bar %>', @markup.dyn_params[:class]
+      end
     end
   end
 

@@ -1,15 +1,17 @@
+require 'zafu/compiler'
+
 module Zafu
   class Template
-    def initialize(template, src_helper = nil)
+    def initialize(template, src_helper = nil, compiler = Zafu::Compiler)
       if template.kind_of?(String)
-        @ast = Compiler.new(template)
+        @ast = compiler.new(template)
       else
-        @ast = Compiler.new_with_url(template.path, :helper => src_helper)
+        @ast = compiler.new_with_url(template.path, :helper => src_helper)
       end
     end
 
     def to_erb(context = {})
-      @ast.process(context)
+      @ast.to_erb(context)
     end
 
     def to_ruby(context = {})

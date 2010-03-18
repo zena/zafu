@@ -1,3 +1,5 @@
+require 'zafu/markup'
+
 module Zafu
   module ParsingRules
     # The context informs the rendering element about the current Node, node class, existing ids, etc. The

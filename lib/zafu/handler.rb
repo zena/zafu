@@ -1,3 +1,8 @@
+require 'zafu/parser'
+require 'zafu/markup'
+require 'zafu/node_context'
+require 'zafu/template'
+
 module Zafu
   class Handler < ActionView::TemplateHandler
     include ActionView::TemplateHandlers::Compilable

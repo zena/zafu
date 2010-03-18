@@ -21,10 +21,12 @@ module Zafu
           # Resolve node context methods (xxx.foo, xxx.bar)
           type.merge(:method => "#{node.name}.#{type[:method]}")
         elsif node && !added_options
-          # sigle method, try inserting current node before arguments: link("foo") becomse link(var1, "foo")
+          # Try prepending current node before arguments: link("foo") becomse link(var1, "foo")
           signature_with_node = signature.dup
           signature_with_node.insert(1, node.klass)
           if type = safe_method_type(signature_with_node, added_options = true)
+            puts "\n\nFound !"
+            puts type.inspect
             type = type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
             type
           else
@@ -40,18 +42,20 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def r_unknown
-        rubyless_expand(::RubyLess.translate(method_with_arguments, self))
-      rescue ::RubyLess::NoMethodError => err
-        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>", err.receiver_with_class)
-      rescue ::RubyLess::Error => err
-        parser_error(err.message)
+        rubyless_render(@method, @params)
       end
 
       # Print documentation on the current node type.
       def r_m
-        out "<div class='rubyless-m'><h3>Documentation for <b>#{node.klass}</b></h3>"
+        if @params[:helper] == 'true'
+          klass = helper.class
+        else
+          klass = node.klass
+        end
+
+        out "<div class='rubyless-m'><h3>Documentation for <b>#{klass}</b></h3>"
         out "<ul>"
-        ::RubyLess::SafeClass.safe_methods_for(node_class).each do |signature, opts|
+        ::RubyLess::SafeClass.safe_methods_for(klass).each do |signature, opts|
           opts = opts.dup
           opts.delete(:method)
           if opts.keys == [:class]
@@ -68,23 +72,31 @@ module Zafu
       end
 
       private
-        def method_with_arguments
+        def rubyless_render(method, params)
+          rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
+        rescue ::RubyLess::NoMethodError => err
+          parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>", err.receiver_with_class)
+        rescue ::RubyLess::Error => err
+          parser_error(err.message)
+        end
+        
+        def method_with_arguments(method, params)
           hash_arguments = {}
           arguments = []
-          keys = @params.keys.map {|k| k.to_s}
+          keys = params.keys.map {|k| k.to_s}
           keys.sort.each do |k|
             if k.to_s =~ /\A_/
-              arguments << @params[k.to_sym]
+              arguments << params[k.to_sym]
             else
-              hash_arguments[k.to_s] = @params[k.to_sym]
+              hash_arguments[k.to_s] = params[k.to_sym]
             end
           end
 
           arguments += [hash_arguments] if hash_arguments != {}
-          if arguments != [] && @method[-1..-1] =~ /\w/
-            "#{@method}(#{arguments.inspect[1..-2]})"
+          if arguments != [] && method[-1..-1] =~ /\w/
+            "#{method}(#{arguments.inspect[1..-2]})"
           else
-            @method
+            method
           end
         end
 

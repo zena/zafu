@@ -10,7 +10,7 @@ class ZafuTest < Test::Unit::TestCase
   include RubyLess::SafeClass
   include Zafu::TestHelper
   safe_method :one => {:class => String, :method => "main_one"}
-
+  
   class Dummy
     include RubyLess::SafeClass
     safe_method :hello => String
@@ -32,7 +32,6 @@ class ZafuTest < Test::Unit::TestCase
       assert_equal '<%= @test.hello %>', zafu_erb('<r:hello/>')
     end
 
-
     should 'change node context by following safe_method types' do
       assert_equal '<% var1 = dum -%><%= var1.hello %>', zafu_erb("<r:dum do='hello'/>")
     end
@@ -41,6 +40,17 @@ class ZafuTest < Test::Unit::TestCase
       should 'wrap context in if' do
         assert_equal '<% if var1 = dum2 -%><%= var1.hello %><% end -%>', zafu_erb("<r:dum2 do='hello'/>")
       end
+    end
+  end
+  
+  context 'a custom compiler' do
+    setup do
+      @compiler = TestCompiler
+    end
+    
+    should 'execute before_process callbacks' do
+      res = zafu_erb("<p class='simple' do='one' class='foo\#{dum.one}'/>", self, @compiler)
+      assert_match %r{class='simple <%= "foo\#\{dum.dummy_one\}"}, res
     end
   end
 

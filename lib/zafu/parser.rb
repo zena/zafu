@@ -9,6 +9,7 @@ module Zafu
   end
 
   class Parser
+    @@callbacks = {}
     attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent
     # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
     attr_accessor :params
@@ -31,6 +32,16 @@ module Zafu
 
       def parser_error(message, method)
         "<span class='parser_error'><span class='method'>#{method}</span> #{message}</span>"
+      end
+
+      attr_accessor :before_process_callbacks
+
+      def before_process_callbacks
+        @before_process_callbacks ||= []
+      end
+
+      def before_process(*args)
+        self.before_process_callbacks += args
       end
     end
 
@@ -72,6 +83,11 @@ module Zafu
       @ok
     end
 
+    def to_erb(context)
+      context[:helper] ||= @options[:helper]
+      process(context)
+    end
+
     def start(mode)
       enter(mode)
     end
@@ -101,7 +117,9 @@ module Zafu
         @context = context
       end
       @result  = ""
-      return @result unless before_process
+
+      before_process
+
       @pass    = {} # used to pass information to the parent
       res = nil
 
@@ -167,7 +185,9 @@ module Zafu
     end
 
     def before_process
-      true
+      self.class.before_process_callbacks.each do |callback|
+        self.send(callback)
+      end
     end
 
     def after_process(text)

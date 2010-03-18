@@ -18,6 +18,12 @@ module Zafu
       NodeContext.new(name, klass, self)
     end
 
+    # Since the idiom to write the node context name is the main purpose of this class, it
+    # deserves this shortcut.
+    def to_s
+      name
+    end
+
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
     # from a direct 'show' in a controller). The returned node context has no parent (up is nil).
     # The convention is to use the class of the current object to build this name.

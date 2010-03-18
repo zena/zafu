@@ -5,7 +5,7 @@ module Zafu
     EMPTY_TAGS   = %w{meta input}
     STEAL_PARAMS = [:class, :id, :style]
 
-    # Tag used (<li> for example)
+    # Tag used ("li" for example). The tag can be nil (no tag).
     attr_accessor :tag
     # Tag parameters (.. class='xxx' id='yyy')
     attr_accessor :params
@@ -97,6 +97,26 @@ module Zafu
         @dyn_params.delete(k)
       end
       @params.merge!(hash)
+    end
+
+    def append_param(key, value)
+      if prev_value = @dyn_params[key]
+        @dyn_params[key] = "#{prev_value} #{value}"
+      elsif prev_value = @params[key]
+        @params[key] = "#{prev_value} #{value}"
+      else
+        @params[key] = value
+      end
+    end
+
+    def append_dyn_param(key, value)
+      if prev_value = @params.delete(key)
+        @dyn_params[key] = "#{prev_value} #{value}"
+      elsif prev_value = @dyn_params[key]
+        @dyn_params[key] = "#{prev_value} #{value}"
+      else
+        @dyn_params[key] = value
+      end
     end
 
     # Define the DOM id from a node context
