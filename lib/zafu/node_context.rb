@@ -24,6 +24,12 @@ module Zafu
       name
     end
 
+    # Return true if the NodeContext represents an element of the given type. We use 'will_be' because
+    # it is equivalent to 'is_a', but for future objects (during rendering).
+    def will_be?(type)
+      klass.ancestors.include?(type)
+    end
+
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
     # from a direct 'show' in a controller). The returned node context has no parent (up is nil).
     # The convention is to use the class of the current object to build this name.

@@ -2,7 +2,7 @@ require 'test_helper'
 
 class NodeContextTest < Test::Unit::TestCase
   class Page;end
-  class SuperPage < Page; end
+  class SubPage < Page; end
   class Comment;end
   NodeContext = Zafu::NodeContext
 
@@ -18,6 +18,18 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return the current class' do
       assert_equal Page, @context.klass
     end
+    
+    should 'return true on will_be with the same class' do
+      assert @context.will_be?(Page)
+    end
+    
+    should 'return false on will_be with a sub class' do
+      assert !@context.will_be?(SubPage)
+    end
+    
+    should 'return false on will_be with a different class' do
+      assert !@context.will_be?(String)
+    end
 
     should 'return self on a get for the same class' do
       assert_equal @context.object_id, @context.get(Page).object_id
@@ -25,6 +37,24 @@ class NodeContextTest < Test::Unit::TestCase
 
     should 'return nil on a get for another class' do
       assert_nil @context.get(Comment)
+    end
+    
+    context 'with a sub-class' do
+      setup do
+        @context = NodeContext.new('@node', SubPage)
+      end
+      
+      should 'return true on will_be with the same class' do
+        assert @context.will_be?(SubPage)
+      end
+
+      should 'return true on will_be with a super class' do
+        assert @context.will_be?(Page)
+      end
+
+      should 'return false on will_be with a different class' do
+        assert !@context.will_be?(String)
+      end
     end
   end
 
@@ -78,7 +108,7 @@ class NodeContextTest < Test::Unit::TestCase
 
   context 'In a sub-classes context' do
     setup do
-      @context = NodeContext.new('super', SuperPage)
+      @context = NodeContext.new('super', SubPage)
     end
 
     should 'find the current context required class is an ancestor' do

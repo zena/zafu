@@ -1,4 +1,5 @@
 require 'zafu/parser'
+require 'zafu/node_context'
 require 'zafu/all'
 
 module Zafu
