@@ -10,6 +10,7 @@ module Zafu
 #    Zafu::Process::Ajax,
     Zafu::Process::HTML,
     Zafu::Process::Context,
+    Zafu::Process::Conditional,
     Zafu::Process::RubyLess
   ]
 end

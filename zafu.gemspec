@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
      "lib/zafu/parser.rb",
      "lib/zafu/parsing_rules.rb",
      "lib/zafu/process/ajax.rb",
+     "lib/zafu/process/conditional.rb",
      "lib/zafu/process/context.rb",
      "lib/zafu/process/html.rb",
      "lib/zafu/process/ruby_less.rb",

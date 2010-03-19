@@ -6,3 +6,4 @@
   * Compiles 'html' with rubyless declarations.
   * Guesses main ivar from view.
   * Tries to resolve method by adding current node parameter.
+  * Added basic conditional execution with 'else' and dummy 'if' clauses.
