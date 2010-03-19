@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{zafu}
-  s.version = "0.1.0"
+  s.version = "0.5.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gaspard Bucher"]
-  s.date = %q{2010-03-15}
+  s.date = %q{2010-03-19}
   s.description = %q{Provides a powerful templating language based on xhtml for rails}
   s.email = %q{gaspard@teti.ch}
   s.extra_rdoc_files = [
@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "lib/zafu.rb",
+     "lib/zafu/all.rb",
      "lib/zafu/compiler.rb",
      "lib/zafu/controller_methods.rb",
      "lib/zafu/handler.rb",
@@ -42,7 +43,9 @@ Gem::Specification.new do |s|
      "script/destroy",
      "script/generate",
      "test/markup_test.rb",
+     "test/mock/params.rb",
      "test/node_context_test.rb",
+     "test/ruby_less_test.rb",
      "test/test_helper.rb",
      "test/zafu_test.rb",
      "zafu.gemspec"
@@ -54,7 +57,9 @@ Gem::Specification.new do |s|
   s.summary = %q{Provides a powerful templating language based on xhtml for rails}
   s.test_files = [
     "test/markup_test.rb",
+     "test/mock/params.rb",
      "test/node_context_test.rb",
+     "test/ruby_less_test.rb",
      "test/test_helper.rb",
      "test/zafu_test.rb"
   ]
