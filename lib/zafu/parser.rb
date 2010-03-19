@@ -116,7 +116,8 @@ module Zafu
       else
         @context = context
       end
-      @result  = ""
+      @result   = ""
+      @out_post = ""
 
       before_process
 
@@ -129,18 +130,18 @@ module Zafu
         res = do_method(:r_unknown)
       end
 
+      # @text contains unparsed data (empty space)
       after_process(res + @text)
     end
 
     def do_method(sym)
       res = self.send(sym)
-      if @result != ""
-        @result
-      elsif !res.kind_of?(String)
-        @method
-      else
-        res
+      if res.kind_of?(String)
+        @result << res
+      elsif @result.blank?
+        @result << @method
       end
+      @result + @out_post
     end
 
     def r_void
@@ -349,11 +350,21 @@ module Zafu
       end
     end
 
-    # Set output during ast processing
-    def out(obj)
-      @result << obj
+    # Output ERB code during ast processing.
+    def out(str)
+      @result << str
+      # Avoid double entry when this is the last call in a render method.
+      nil
     end
 
+    # Output ERB code that will be inserted after @result.
+    def out_post(str)
+      @out_post << str
+      # Avoid double entry when this is the last call in a render method.
+      nil
+    end
+
+    # Advance parser.
     def eat(arg)
       if arg.kind_of?(String)
         len = arg.length

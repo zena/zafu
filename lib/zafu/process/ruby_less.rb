@@ -7,42 +7,18 @@ module Zafu
       # Actual method resolution. The lookup first starts in the current helper. If nothing is found there, it
       # searches inside a 'helpers' module and finally looks into the current node_context.
       # If nothing is found at this stage, we prepend the method with the current node and start over again.
-      def safe_method_type(signature, added_options = false)
-        if type = context_from_signature(signature)
-          # Resolve @page, @node
-          type
-        elsif type = safe_method_from(helper, signature)
-          # Resolve template helper methods
-          type
-        elsif helper.respond_to?(:helpers) && type = safe_method_from(helper.helpers, signature)
-          # Resolve by looking at the included helpers
-          type
-        elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
-          # Resolve node context methods (xxx.foo, xxx.bar)
-          type.merge(:method => "#{node.name}.#{type[:method]}")
-        elsif node && !added_options
-          # Try prepending current node before arguments: link("foo") becomse link(var1, "foo")
-          signature_with_node = signature.dup
-          signature_with_node.insert(1, node.klass)
-          if type = safe_method_type(signature_with_node, added_options = true)
-            puts "\n\nFound !"
-            puts type.inspect
-            type = type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
-            type
-          else
-            raise ::RubyLess::NoMethodError.new(nil, helper, signature)
-          end
-        elsif added_options
-          nil
-        else
-          raise ::RubyLess::NoMethodError.new(nil, helper, signature)
-        end
+      def safe_method_type(signature)
+        get_method_type(signature, false)
       end
 
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def r_unknown
         rubyless_render(@method, @params)
+      rescue ::RubyLess::NoMethodError => err
+        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>", err.receiver_with_class)
+      rescue ::RubyLess::Error => err
+        parser_error(err.message)
       end
 
       # Print documentation on the current node type.
@@ -71,15 +47,49 @@ module Zafu
         "<pre><%= @erb.gsub('<','&lt;').gsub('>','&gt;') %></pre>"
       end
 
-      private
-        def rubyless_render(method, params)
-          rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
-        rescue ::RubyLess::NoMethodError => err
-          parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>", err.receiver_with_class)
-        rescue ::RubyLess::Error => err
-          parser_error(err.message)
+      def rubyless_render(method, params)
+        rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
+      end
+
+      def rubyless_attr(val)
+        if val =~ /\#\{/
+          ::RubyLess.translate("%Q{#{val}}", self)
+        else
+          val
         end
-        
+      rescue => err
+        raise ::RubyLess::Error.new("Error parsing attribute value \"#{val}\": #{err.message.strip}")
+      end
+
+      private
+        def get_method_type(signature, added_options = false)
+          if type = node_context_from_signature(signature)
+            # Resolve @page, @node
+            type
+          elsif type = safe_method_from(helper, signature)
+            # Resolve template helper methods
+            type
+          elsif helper.respond_to?(:helpers) && type = safe_method_from(helper.helpers, signature)
+            # Resolve by looking at the included helpers
+            type
+          elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
+            # Resolve node context methods (xxx.foo, xxx.bar)
+            type.merge(:method => "#{node.name}.#{type[:method]}")
+          elsif node && !added_options
+            # Try prepending current node before arguments: link("foo") becomse link(var1, "foo")
+            signature_with_node = signature.dup
+            signature_with_node.insert(1, node.klass)
+            if type = get_method_type(signature_with_node, added_options = true)
+              type = type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
+              type
+            else
+              nil
+            end
+          else
+            nil
+          end
+        end
+
         def method_with_arguments(method, params)
           hash_arguments = {}
           arguments = []
@@ -115,7 +125,7 @@ module Zafu
 
         # This is used to resolve '@node' as NodeContext with class Node, '@page' as first NodeContext
         # of type Page, etc.
-        def context_from_signature(signature)
+        def node_context_from_signature(signature)
           return nil unless signature.size == 1
           ivar = signature.first
           return nil unless ivar[0..0] == '@'
