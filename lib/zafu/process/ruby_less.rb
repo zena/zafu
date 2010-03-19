@@ -52,13 +52,7 @@ module Zafu
       end
 
       def rubyless_attr(val)
-        if val =~ /\#\{/
-          ::RubyLess.translate("%Q{#{val}}", self)
-        else
-          val
-        end
-      rescue => err
-        raise ::RubyLess::Error.new("Error parsing attribute value \"#{val}\": #{err.message.strip}")
+        ::RubyLess.translate_string(val, self)
       end
 
       private

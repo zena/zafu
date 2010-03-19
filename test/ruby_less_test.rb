@@ -8,7 +8,7 @@ class ZafuRubyLessTest < Test::Unit::TestCase
 
   context 'Parsing an attribute without dynamic strings' do
     should 'not alter string' do
-      assert_equal 'this is a string', rubyless_attr('this is a string')
+      assert_equal '"this is a string"', rubyless_attr('this is a string')
     end
   end
 
@@ -28,7 +28,7 @@ class ZafuRubyLessTest < Test::Unit::TestCase
         begin
           rubyless_attr('this #{one}}')
         rescue ::RubyLess::Error => err
-          assert_equal 'Error parsing attribute value "this #{one}}": parse error on value "}" (tRCURLY)', err.message
+          assert_equal 'Error parsing string "this #{one}}": parse error on value "}" (tRCURLY)', err.message
         end
       end
     end

@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
      "lib/zafu/compiler.rb",
      "lib/zafu/controller_methods.rb",
      "lib/zafu/handler.rb",
-     "lib/zafu/helper.rb",
      "lib/zafu/info.rb",
      "lib/zafu/markup.rb",
      "lib/zafu/mock_helper.rb",
@@ -53,7 +52,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://zenadmin.org/zafu}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{Provides a powerful templating language based on xhtml for rails}
   s.test_files = [
     "test/markup_test.rb",

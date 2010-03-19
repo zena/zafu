@@ -1,3 +1,4 @@
+require 'zafu/all'
 
 if defined?(ActionView)
   require 'zafu/handler'
