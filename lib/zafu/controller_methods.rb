@@ -2,7 +2,6 @@ module Zafu
   module ControllerMethods
     def self.included(base)
       base.helper_method :zafu_context, :get_template_text, :template_url_for_asset
-      base.helper Zafu::Helper
       if RAILS_ENV == 'development'
         base.class_eval do
           def render_for_file_with_rebuild(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
