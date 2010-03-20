@@ -7,6 +7,8 @@ class String
 end
 
 class NodeContextTest < Test::Unit::TestCase
+  include RubyLess::SafeClass
+  safe_method :day => {:class => String, :method => %q{Time.now.strftime('%A')}}
   Markup = Zafu::Markup
 
   context 'Parsing parameters' do
@@ -200,6 +202,27 @@ class NodeContextTest < Test::Unit::TestCase
 
     should 'not wrap twice if called twice' do
       assert_equal "<p class='quote' style='padding:3px; border:1px solid red;'>#{@text}</p>", @markup.wrap(@markup.wrap(@text))
+    end
+  end
+
+  context 'Compiling params' do
+    setup do
+      @markup = Markup.new('p')
+      @markup.params = %q{class='one #{day}' id='foobar' name='#{day}'}
+    end
+
+    context 'with compile_params' do
+      setup do
+        @markup.compile_params(self)
+      end
+
+      should 'translate dynamic params into ERB by using RubyLess' do
+        assert_equal %q{<%= "one #{Time.now.strftime('%A')}" %>}, @markup.dyn_params[:class]
+      end
+
+      should 'translate without string on single dynamic content' do
+        assert_equal %q{<%= Time.now.strftime('%A') %>}, @markup.dyn_params[:name]
+      end
     end
   end
 end

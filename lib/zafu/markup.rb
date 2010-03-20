@@ -83,6 +83,21 @@ module Zafu
       end
     end
 
+    # Compile dynamic parameters as ERB. A parameter is considered dynamic if it
+    # contains the string eval "#{...}"
+    def compile_params(helper)
+      @params.each do |key, value|
+        if value =~ /^(.*)\#\{(.*)\}(.*)$/
+          @params.delete(key)
+          if $1 == '' && $3 == ''
+            append_dyn_param(key, "<%= #{RubyLess.translate($2, helper)} %>")
+          else
+            append_dyn_param(key, "<%= #{RubyLess.translate_string(value, helper)} %>")
+          end
+        end
+      end
+    end
+
     # Set dynamic html parameters.
     def set_dyn_params(hash)
       hash.keys.each do |k|

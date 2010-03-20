@@ -154,9 +154,9 @@ module Zafu
     end
 
     def scan_tag(opts={})
-      # puts "TAG(#{@method}): [#{@text}]"
+      #puts "TAG(#{@method}): [#{@text}]"
       if @text =~ /\A<r:([\w_]+)([^>]*?)(\/?)>/
-        # puts "RTAG:#{$~.to_a.inspect}" # ztag
+        #puts "RTAG:#{$~.to_a.inspect}" # ztag
         eat $&
         opts.merge!(:method=>$1, :params=>$2)
         opts.merge!(:text=>'') if $3 != ''
@@ -173,6 +173,14 @@ module Zafu
         opts.merge!(:method=>method, :params=>$2)
         opts.merge!(:text=>'') if $3 != ''
         opts.merge!(:end_tag=>'form') if method == 'form_tag'
+        make(:void, opts)
+      elsif @text =~ /\A<(\w+)(([^>]*?)\#\{([^>]*?))(\/?)>/
+        # html tag with dynamic params
+        #puts "OTHER_DYN:[#{$&}]"
+
+        eat $&
+        opts.merge!(:method => 'void', :html_tag => $1, :html_tag_params => $2, :params => {})
+        opts.merge!(:text=>'') if $5 != ''
         make(:void, opts)
       elsif @text =~ /\A<(\w+)([^>]*?)id\s*=('[^>]*?[^\\]'|"[^>]*?[^\\]")([^>]*?)(\/?)>/
         #puts "ID:#{$~.to_a.inspect}" # id tag
