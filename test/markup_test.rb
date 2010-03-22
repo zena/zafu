@@ -54,6 +54,14 @@ class NodeContextTest < Test::Unit::TestCase
       h = {:class => 'shiny', :style => 'good'}
       assert_equal h, @markup.params
     end
+
+    should 'respond to has_param' do
+      @markup.params     = {:class => 'one', :x => 'y'}
+      @markup.dyn_params = {:y => 'z'}
+      assert @markup.has_param?(:x)
+      assert @markup.has_param?(:y)
+      assert !@markup.has_param?(:z)
+    end
   end
 
   context 'Stealing html params' do

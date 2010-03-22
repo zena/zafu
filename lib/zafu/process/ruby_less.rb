@@ -14,7 +14,16 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def r_unknown
-        rubyless_render(@method, @params)
+        if @method =~ /^[A-Z]/
+          return rubyless_class_scope(@method)
+        end
+
+        if code = @method[/^\#\{(.+)\}$/, 1]
+          @params[:eval] = $1
+          r_show
+        else
+          rubyless_render(@method, @params)
+        end
       rescue ::RubyLess::NoMethodError => err
         parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>", err.receiver_with_class)
       rescue ::RubyLess::Error => err
@@ -48,6 +57,7 @@ module Zafu
       end
 
       def rubyless_render(method, params)
+        puts method_with_arguments(method, params).inspect
         rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
       end
 
@@ -115,6 +125,29 @@ module Zafu
             out "<% #{var} = #{res} -%>"
             out @markup.wrap(expand_with_node(var, res.klass))
           end
+        end
+
+        def rubyless_class_scope(class_name)
+          # capital letter ==> class conditional
+          klass = Module.const_get(class_name)
+          if klass.ancestors.include?(node.klass)
+            out "<% if #{node}.kind_of?(#{klass}) %>"
+            out expand_with(:in_if => true)
+            out "<% end -%>"
+          else
+            # render nothing: incompatible classes
+            ''
+          end
+        rescue
+          parser_error("Invalid class name '#{class_name}'")
+        end
+
+        # Find a class or behavior based on a name. The returned class should implement
+        # 'safe_method_type'.
+        def get_class(class_name)
+          Module.const_get(class_name)
+        rescue
+          nil
         end
 
         # This is used to resolve '@node' as NodeContext with class Node, '@page' as first NodeContext

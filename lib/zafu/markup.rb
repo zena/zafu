@@ -73,6 +73,11 @@ module Zafu
       end
     end
 
+    # Another way to set dynamic params (the argument must be a hash).
+    def dyn_params=(h)
+      set_dyn_params(h)
+    end
+
     # Steal html parameters from an existing hash (the stolen parameters are removed
     # from the argument)
     def steal_html_params_from(p)
@@ -138,6 +143,11 @@ module Zafu
     def set_id(erb_id)
       params[:id] = nil
       dyn_params[:id] = erb_id
+    end
+
+    # Return true if the given key exists in params or dyn_params.
+    def has_param?(key)
+      params[key] || dyn_params[key]
     end
 
     # Wrap the given text with our tag. If 'append' is not empty, append the text

@@ -1,3 +1,11 @@
+== 0.5.1
+
+* 1 major enhancement
+  * Added rubyless_class_scope to filter evaluation on class type.
+
+* 1 minor enhancement
+  * Added 'has_param' to the Markup object.
+
 == 0.5.0 2010-03-21
 
 * 6 major enhancement
