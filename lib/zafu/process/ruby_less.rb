@@ -8,7 +8,7 @@ module Zafu
       # searches inside a 'helpers' module and finally looks into the current node_context.
       # If nothing is found at this stage, we prepend the method with the current node and start over again.
       def safe_method_type(signature)
-        get_method_type(signature, false)
+        super || get_method_type(signature, false)
       end
 
       # Resolve unknown methods by using RubyLess in the current compilation context (the
@@ -57,7 +57,6 @@ module Zafu
       end
 
       def rubyless_render(method, params)
-        puts method_with_arguments(method, params).inspect
         rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
       end
 

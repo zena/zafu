@@ -119,6 +119,16 @@ module Zafu
       @params.merge!(hash)
     end
 
+    def prepend_param(key, value)
+      if prev_value = @dyn_params[key]
+        @dyn_params[key] = "#{value} #{prev_value}"
+      elsif prev_value = @params[key]
+        @params[key] = "#{value} #{prev_value}"
+      else
+        @params[key] = value
+      end
+    end
+
     def append_param(key, value)
       if prev_value = @dyn_params[key]
         @dyn_params[key] = "#{prev_value} #{value}"
@@ -126,6 +136,16 @@ module Zafu
         @params[key] = "#{prev_value} #{value}"
       else
         @params[key] = value
+      end
+    end
+
+    def prepend_dyn_param(key, value)
+      if prev_value = @params.delete(key)
+        @dyn_params[key] = "#{value} #{prev_value}"
+      elsif prev_value = @dyn_params[key]
+        @dyn_params[key] = "#{value} #{prev_value}"
+      else
+        @dyn_params[key] = value
       end
     end
 
