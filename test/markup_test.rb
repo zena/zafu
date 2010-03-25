@@ -6,8 +6,9 @@ class String
   end
 end
 
-class NodeContextTest < Test::Unit::TestCase
-  include RubyLess::SafeClass
+
+class MarkupTest < Test::Unit::TestCase
+  include RubyLess
   safe_method :day => {:class => String, :method => %q{Time.now.strftime('%A')}}
   Markup = Zafu::Markup
 
@@ -270,12 +271,13 @@ class NodeContextTest < Test::Unit::TestCase
       end
     end
   end
-  
+
   context 'Wrapping some text' do
     setup do
       @text = 'Alice: It would be so nice if something made sense for a change.'
       @markup = Markup.new('p')
-      @markup.params = {:class => 'quote', :style => 'padding:3px; border:1px solid red;'}
+      @markup.params[:class] = 'quote'
+      @markup.params[:style] = 'padding:3px; border:1px solid red;'
     end
 
     should 'add the markup tag around the text' do
@@ -284,6 +286,12 @@ class NodeContextTest < Test::Unit::TestCase
 
     should 'not wrap twice if called twice' do
       assert_equal "<p class='quote' style='padding:3px; border:1px solid red;'>#{@text}</p>", @markup.wrap(@markup.wrap(@text))
+    end
+
+    should 'display static params before dynamic and keep them ordered' do
+      @markup.set_dyn_params(:foo => '<%= @bar %>')
+      @markup.set_params(:baz => 'buzz')
+      assert_equal "<p class='quote' style='padding:3px; border:1px solid red;' baz='buzz' foo='<%= @bar %>'>foo</p>", @markup.wrap('foo')
     end
   end
 

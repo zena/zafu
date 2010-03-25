@@ -110,14 +110,7 @@ module Zafu
           @params[key] = helper.send(:template_url_for_asset, :src => src, :base_path => @options[:base_path], :type => type)
         end
 
-        res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup.done = true
-        inner = expand_with
-        if inner == ''
-          res + "/>"
-        else
-          res + ">#{inner}"
-        end
+        expand_with
       end
 
       def r_form

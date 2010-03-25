@@ -1,0 +1,21 @@
+nasty_erb:
+  src: "this <% puts \"could be\" %> nasty"
+  tem: "this &lt;% puts \"could be\" %&gt; nasty"
+
+never_end_erb:
+  src: "never ending erb  <%= puts "
+  tem: "never ending erb  &lt;%= puts "
+  res: "never ending erb  &lt;%= puts "
+
+nasty_evil_erb:
+  src: "this <% puts <% puts 'could be' %> %> nasty"
+  tem: "this &lt;% puts &lt;% puts 'could be' %&gt; %&gt; nasty"
+
+trick_erb:
+  src: "this <<r:void/>% puts 'is bad' %>"
+  tem: "this <<r:void/>% puts 'is bad' %&gt;"
+  res: "this <<r:void/>% puts 'is bad' %&gt;"
+
+include_erb:
+  src: "include: <r:include template='/nasty_erb'/>"
+  tem: "include: this &lt;% puts \"could be\" %&gt; nasty"

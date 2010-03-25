@@ -78,13 +78,21 @@ module Zafu
           elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
             # Resolve node context methods (xxx.foo, xxx.bar)
             type.merge(:method => "#{node.name}.#{type[:method]}")
+          elsif @blocks.first.kind_of?(String) && !added_options
+            # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")
+            signature_with_block = signature.dup
+            signature_with_block << String
+            if type = get_method_type(signature_with_block, true)
+              type.merge(:prepend_args => ::RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first))
+            else
+              nil
+            end
           elsif node && !added_options
-            # Try prepending current node before arguments: link("foo") becomse link(var1, "foo")
+            # Try prepending current node before arguments: link("foo") becomes link(var1, "foo")
             signature_with_node = signature.dup
             signature_with_node.insert(1, node.klass)
             if type = get_method_type(signature_with_node, added_options = true)
-              type = type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
-              type
+              type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
             else
               nil
             end
@@ -114,8 +122,12 @@ module Zafu
         end
 
         def rubyless_expand(res)
-          if res.klass == String && @blocks.map {|b| b.kind_of?(String) ? nil : b.method}.compact.empty?
-            out "<%= #{res} %>"
+          if res.klass == String && !@blocks.detect {|b| !b.kind_of?(String)}
+            if lit = res.literal
+              out lit
+            else
+              out "<%= #{res} %>"
+            end
           elsif res.could_be_nil?
             out "<% if #{var} = #{res} -%>"
             out @markup.wrap(expand_with_node(var, res.klass))

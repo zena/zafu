@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class ZafuRubyLessTest < Test::Unit::TestCase
-  include RubyLess::SafeClass
+  include RubyLess
   include Zafu::Process::RubyLess
   def helper; self.class; end
   safe_method :one => {:class => String, :method => "main_one"}

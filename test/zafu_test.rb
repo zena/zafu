@@ -7,12 +7,12 @@ class String
 end
 
 class ZafuTest < Test::Unit::TestCase
-  include RubyLess::SafeClass
+  include RubyLess
   include Zafu::TestHelper
   safe_method :one => {:class => String, :method => "main_one"}
   
   class Dummy
-    include RubyLess::SafeClass
+    include RubyLess
     safe_method :hello => String
     safe_method :one => {:class => String, :method => "dummy_one"}
   end

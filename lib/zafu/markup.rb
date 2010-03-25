@@ -1,3 +1,5 @@
+require 'zafu/ordered_hash'
+
 module Zafu
   # A Markup object is used to hold information on the tag used (<li>), it's parameters (.. class='xxx') and
   # indentation.
@@ -23,9 +25,9 @@ module Zafu
       # Parse parameters into a hash. This parsing supports multiple values for one key by creating additional keys:
       # <tag do='hello' or='goodbye' or='gotohell'> creates the hash {:do=>'hello', :or=>'goodbye', :or1=>'gotohell'}
       def parse_params(text)
-        return {} unless text
+        return OrderedHash.new unless text
         return text if text.kind_of?(Hash)
-        params = {}
+        params = OrderedHash.new
         rest = text.strip
         while (rest != '')
           if rest =~ /(.+?)=/
@@ -60,8 +62,8 @@ module Zafu
     def initialize(tag)
       @done       = false
       @tag        = tag
-      @params     = {}
-      @dyn_params = {}
+      @params     = OrderedHash.new
+      @dyn_params = OrderedHash.new
     end
 
     # Set params either using a string (like "alt='time passes' class='zen'")
@@ -81,7 +83,6 @@ module Zafu
     # Steal html parameters from an existing hash (the stolen parameters are removed
     # from the argument)
     def steal_html_params_from(p)
-      @params ||= {}
       STEAL_PARAMS.each do |k|
         next unless p[k]
         @params[k] = p.delete(k)
@@ -192,12 +193,7 @@ module Zafu
     private
       def params_to_html
         para = []
-        keys = []
-
-        @dyn_params.each do |k,v|
-          keys << k
-          para << " #{k}='#{v}'"
-        end
+        keys = @dyn_params.keys
 
         @params.each do |k,v|
           next if keys.include?(k)
@@ -209,8 +205,11 @@ module Zafu
           end
         end
 
-        # we sort so that the output is always the same (needed for testing)
-        para.sort.join('')
+        @dyn_params.each do |k,v|
+          para << " #{k}='#{v}'"
+        end
+
+        para
       end
   end
 end

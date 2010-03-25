@@ -110,11 +110,8 @@ module Zafu
         if $1 == @end_tag
           @end_tag_count -= 1
           if @end_tag_count == 0
-            if @end_tag == 'script'
-              flush $& # keep closing tag
-            else
-              eat $&
-            end
+            eat $&
+
             @markup.space_after = $2
             leave
           else
@@ -216,7 +213,7 @@ module Zafu
         @method = 'rename_asset'
         @markup.tag = @end_tag = $1
         closed = ($3 != '')
-        @params = parse_params($2)
+        @params = Markup.parse_params($2)
         if closed
           leave(:asset)
         elsif @markup.tag == 'script'
@@ -233,7 +230,8 @@ module Zafu
 
     def scan_inside_asset
       if @text =~ /\A(.*?)<\/#{@end_tag}>/m
-        flush $&
+        eat $&
+        store $1
         leave(:asset)
       else
         # never ending asset

@@ -1,0 +1,5 @@
+show_url_in_script:
+  src: "<script type='text/javascript'>
+  alert('hello');
+  </script>"
+  res: "/http://test.host/oo/projects/cleanWater/page22.html/"
