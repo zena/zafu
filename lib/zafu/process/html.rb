@@ -1,7 +1,12 @@
 module Zafu
   module Process
     module HTML
-      attr_accessor :html_tag, :html_tag_params, :name, :sub_do
+      def self.included(base)
+        base.before_process :compile_html_params
+        base.wrap  :wrap_html
+      end
+
+#      attr_accessor :html_tag, :html_tag_params, :name, :sub_do
 
       # Replace the 'original' element in the included template with our new version.
       def replace_with(new_obj)
@@ -32,18 +37,14 @@ module Zafu
         super && @markup.params == {} && @markup.tag.nil?
       end
 
-      def before_process
-        return unless super
+      def compile_html_params
         @markup.done = false
         unless @markup.tag
           if @markup.tag = @params.delete(:tag)
-            @markup.params = {}
-            [:id, :class].each do |k|
-              next unless @params[k]
-              @markup.params[k] = @params.delete(k)
-            end
+            @markup.steal_html_params_from(@params)
           end
         end
+
         # Translate dynamic params such as <tt>class='#{visitor.lang}'</tt> in the context
         # of the current parser
         @markup.compile_params(self)
@@ -53,8 +54,9 @@ module Zafu
         true
       end
 
-      def after_process(text)
-        res = @markup.wrap(super)
+      def wrap_html(text)
+        res = @markup.wrap(text)
+        # restore @markup
         @markup = @markup_bak
         res
       end

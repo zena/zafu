@@ -60,8 +60,13 @@ module Zafu
         rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
       end
 
-      def rubyless_attr(val)
-        ::RubyLess.translate_string(val, self)
+      def set_markup_attr(markup, key, value)
+        value = ::RubyLess.translate_string(value, self)
+        if value.literal
+          markup.set_params key => value.literal
+        else
+          markup.set_dyn_params key => "<%= #{value} %>"
+        end
       end
 
       private

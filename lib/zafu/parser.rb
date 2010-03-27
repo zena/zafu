@@ -9,6 +9,10 @@ module Zafu
   end
 
   class Parser
+    TEXT_CALLBACKS    = %w{before_parse after_parse before_wrap wrap after_wrap}
+    PROCESS_CALLBACKS = %w{before_process after_process}
+    CALLBACKS         = TEXT_CALLBACKS + PROCESS_CALLBACKS
+
     @@callbacks = {}
     attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent
     # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
@@ -34,15 +38,40 @@ module Zafu
         "<span class='parser_error'><span class='method'>#{method}</span> #{message}</span>"
       end
 
-      attr_accessor :before_process_callbacks
+      CALLBACKS.each do |clbk|
+        eval %Q{
+          attr_accessor :#{clbk}_callbacks
 
-      def before_process_callbacks
-        @before_process_callbacks ||= []
-      end
+          def #{clbk}_callbacks
+            @#{clbk}_callbacks ||= []
+          end
 
-      def before_process(*args)
-        self.before_process_callbacks += args
+          def #{clbk}(*args)
+            self.#{clbk}_callbacks += args
+          end
+        }
       end
+    end
+
+    PROCESS_CALLBACKS.each do |clbk|
+      eval %Q{
+        def #{clbk}
+          self.class.#{clbk}_callbacks.each do |callback|
+            send(callback)
+          end
+        end
+      }
+    end
+
+    TEXT_CALLBACKS.each do |clbk|
+      eval %Q{
+        def #{clbk}(text)
+          self.class.#{clbk}_callbacks.each do |callback|
+            text = send(callback, text)
+          end
+          text
+        end
+      }
     end
 
     def initialize(text, opts={})
@@ -75,6 +104,7 @@ module Zafu
       unless opts[:sub]
         @text = after_parse(@text)
       end
+
       @ids.keys.each do |k|
         if original_ids[k] != @ids[k]
           @defined_ids[k] = @ids[k]
@@ -130,8 +160,14 @@ module Zafu
         res = do_method(:r_unknown)
       end
 
+      res = before_wrap(res)
+      res = wrap(res)
       # @text contains unparsed data (empty space)
-      after_process(res + @text)
+      res = after_wrap(res) + @text
+
+      after_process
+      
+      res
     end
 
     def do_method(sym)
@@ -183,24 +219,6 @@ module Zafu
         hash["exp_#{k}"] = v.inspect
       end
       expand_with(hash)
-    end
-
-    def before_process
-      self.class.before_process_callbacks.each do |callback|
-        self.send(callback)
-      end
-    end
-
-    def after_process(text)
-      text
-    end
-
-    def before_parse(text)
-      text
-    end
-
-    def after_parse(text)
-      text
     end
 
     def include_template
