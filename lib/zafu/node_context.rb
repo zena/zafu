@@ -3,6 +3,9 @@ module Zafu
     # The name of the variable halding the current object or list ("@node", "var1")
     attr_reader :name
 
+    # The previous NodeContext
+    attr_reader :up
+
     # The type of object contained in the current context (Node, Page, Image)
     attr_reader :klass
 

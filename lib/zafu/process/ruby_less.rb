@@ -117,20 +117,30 @@ module Zafu
         end
 
         def method_with_arguments(method, params)
-          hash_arguments = {}
+          hash_arguments = []
           arguments = []
-          keys = params.keys.map {|k| k.to_s}
-          keys.sort.each do |k|
+          params.keys.sort {|a,b| a.to_s <=> b.to_s}.each do |k|
             if k =~ /\A_/
-              arguments << params[k.to_sym]
+              arguments << "%Q{#{params[k]}}"
             else
-              hash_arguments[k] = params[k.to_sym]
+              hash_arguments << ":#{k} => %Q{#{params[k]}}"
             end
           end
 
-          arguments += [hash_arguments] if hash_arguments != {}
-          if arguments != [] && method[-1..-1] =~ /\w/
-            "#{method}(#{arguments.inspect[1..-2]})"
+          if hash_arguments != []
+            arguments << hash_arguments.join(', ')
+          end
+
+          if arguments != []
+            if method =~ /^(.*)\((.*)\)$/
+              if $2 == ''
+                "#{$1}(#{arguments.join(', ')})"
+              else
+                "#{$1}(#{$2}, #{arguments.join(', ')})"
+              end
+            else
+              "#{method}(#{arguments.join(', ')})"
+            end
           else
             method
           end
@@ -143,6 +153,8 @@ module Zafu
             else
               out "<%= #{res} %>"
             end
+          elsif @blocks.empty?
+            out "<%= #{res} %>"
           elsif res.could_be_nil?
             out "<% if #{var} = #{res} -%>"
             out @markup.wrap(expand_with_node(var, res.klass))
@@ -193,6 +205,7 @@ module Zafu
         end
 
         def safe_method_from(context, signature)
+
           if context.respond_to?(:safe_method_type)
             context.safe_method_type(signature)
           else

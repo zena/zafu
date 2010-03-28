@@ -24,13 +24,16 @@ module Zafu
             if alt_class = @params[:alt_class]
               alt_class = ::RubyLess.translate_string(alt_class, self)
               alt_test = @params[:alt_reverse] == 'true' ? "(#{var}_max_index - #{var}_index) % 2 != 0" : "#{var}_index % 2 != 0"
-              @markup.append_dyn_param(:class, "<= #{alt_test} ? #{alt_class} : '' %>")
+              @markup.append_dyn_param(:class, "<%= #{alt_test} ? #{alt_class} : '' %>")
               @markup.tag ||= 'div'
             end
           else
             out "<% #{node}.each do |#{var}| -%>"
           end
-          out @markup.wrap(expand_with_node(var, node.klass.first))
+          @context[:node] = @context[:node].move_to(var, node.klass.first)
+            steal_and_eval_html_params_for(@markup, @params)
+            out @markup.wrap(expand_with)
+          @context[:node] = @context[:node].up
           out "<% end -%>"
         end
       end

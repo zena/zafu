@@ -94,7 +94,6 @@ module Zafu
         @text = before_parse(text)
       end
 
-
       start(mode)
 
       # set name
@@ -126,7 +125,7 @@ module Zafu
     # This replaces the current object 'self' which is in the original included template, with the custom version 'obj'.
     def replace_with(obj)
       # keep @method (obj's method is always 'with')
-      @blocks   = obj.blocks.empty? ? @blocks : obj.blocks
+      @blocks = obj.blocks.empty? ? @blocks : obj.blocks
       @params.merge!(obj.params)
     end
 
@@ -166,7 +165,7 @@ module Zafu
       res = after_wrap(res) + @text
 
       after_process
-      
+
       res
     end
 
@@ -305,6 +304,17 @@ module Zafu
       Hash[*@blocks.map do |b|
         b.kind_of?(String) ? nil : [b.method, b]
       end.compact.flatten]
+    end
+
+    def single_child_method
+      return @single_child_method if defined?(@single_child_method)
+      @single_child_method = if @blocks.size == 1
+        single_child = @blocks[0]
+        return nil if single_child.kind_of?(String)
+        single_child.html_tag ? nil : single_child.method
+      else
+        nil
+      end
     end
 
     def descendants(key)

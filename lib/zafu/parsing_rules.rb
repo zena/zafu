@@ -12,11 +12,12 @@ module Zafu
     # The markup (of class Markup) holds information on the tag (<li>), tag attributes (.. class='foo') and
     # indentation information that should be used when rendered. This context is not inherited.
     attr_accessor :markup
-    
+
     def self.included(base)
       base.before_parse :remove_erb
+      base.before_process :unescape_ruby
     end
-    
+
     # This callback is run just after the block is initialized (Parser#initialize).
     def start(mode)
       # tag_context
@@ -46,8 +47,8 @@ module Zafu
       # FIXME: what is this ???
       @options[:form] ||= true if @method == 'form'
 
-      # puts "[#{@markup[:space_before]}(#{@method})#{@markup[:space_after]}]"
       if @params =~ /\A([^>]*?)do\s*=('|")([^\2]*?[^\\])\2([^>]*)\Z/
+        #puts $~.to_a.inspect
         # we have a sub 'do'
         @params = Markup.parse_params($1)
         @sub_do = $3 # this is used by replace_with (FIXME)
@@ -84,7 +85,16 @@ module Zafu
     def remove_erb(text)
       text.gsub('<%', '&lt;%').gsub('%>', '%&gt;')
     end
-    
+
+    def unescape_ruby
+      @params.each do |k,v|
+        v.gsub!('&gt;', '>')
+        v.gsub!('&lt;', '<')
+      end
+      @method.gsub!('&gt;', '>')
+      @method.gsub!('&lt;', '<')
+    end
+
     def single_child_method
       return @single_child_method if defined?(@single_child_method)
       @single_child_method = if @blocks.size == 1
@@ -95,7 +105,7 @@ module Zafu
         nil
       end
     end
-    
+
     # scan rules
     def scan
       # puts "SCAN(#{@method}): [#{@text}]"
@@ -174,7 +184,7 @@ module Zafu
         opts.merge!(:text=>'') if $3 != ''
         make(:void, opts)
       elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('([^>]*?[^\\]|)'|"([^>]*?[^\\]|)")([^>]*?)(\/?)>/
-        #puts "DO:#{$~.to_a.inspect}" # do tag
+        #puts "DO:#{($4||$5).inspect}" # do tag
         eat $&
         opts.merge!(:method=>($4||$5), :html_tag=>$1, :html_tag_params=>$2, :params=>$6)
         opts.merge!(:text=>'') if $7 != ''
