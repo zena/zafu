@@ -30,8 +30,7 @@ module Zafu
       def get_template_text(path, helper, base_path=nil)
         res = helper.send(:get_template_text, path, base_path)
         return [parser_error("template '#{path}' not found", 'include'), nil, nil] unless res
-        text, fullpath, base_path = *res
-        return res
+        res
       end
 
       def parser_error(message, method)
@@ -304,17 +303,6 @@ module Zafu
       Hash[*@blocks.map do |b|
         b.kind_of?(String) ? nil : [b.method, b]
       end.compact.flatten]
-    end
-
-    def single_child_method
-      return @single_child_method if defined?(@single_child_method)
-      @single_child_method = if @blocks.size == 1
-        single_child = @blocks[0]
-        return nil if single_child.kind_of?(String)
-        single_child.html_tag ? nil : single_child.method
-      else
-        nil
-      end
     end
 
     def descendants(key)

@@ -6,17 +6,19 @@ module Zafu
         base.wrap  :wrap_html
       end
 
-#      attr_accessor :html_tag, :html_tag_params, :name, :sub_do
-
       # Replace the 'original' element in the included template with our new version.
       def replace_with(new_obj)
         super
-        html_tag_params    = new_obj.html_tag_params
-        [:class, :id].each do |sym|
-          html_tag_params[sym] = new_obj.params[sym] if new_obj.params.include?(sym)
+        # [self = original_element]. Replace @markup with content of the new_obj (<ul do='with'>...)
+        if new_obj.markup.tag
+          @markup.tag = new_obj.markup.tag
         end
-        @markup.tag = new_obj.html_tag || @markup.tag
-        @markup.params.merge!(html_tag_params)
+
+        @markup.params.merge!(new_obj.markup.params)
+
+        # We do not have to merge dyn_params since these are compiled before processing (and we are in
+        # the pre-processor)
+
         if new_obj.params[:method]
           @method   = new_obj.params[:method] if new_obj.params[:method]
         elsif new_obj.sub_do
@@ -24,12 +26,12 @@ module Zafu
         end
       end
 
-      # Pass the caller's 'html_tag' and 'html_tag_params' to the included part.
+      # Pass the caller's 'markup' to the included part.
       def include_part(obj)
-        obj.html_tag = @markup.tag || obj.html_tag
-        obj.html_tag_params = !@markup.params.empty? ? @markup.params : obj.html_tag_params
+        if @markup.tag
+          obj.markup = @markup.dup
+        end
         @markup.tag = nil
-        @markup.params = {}
         super(obj)
       end
 

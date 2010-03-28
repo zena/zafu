@@ -13,6 +13,9 @@ module Zafu
     # indentation information that should be used when rendered. This context is not inherited.
     attr_accessor :markup
 
+    # We need this flag to detect cases like <r:with part='list' do='other list finder'/>
+    attr_reader :sub_do
+
     def self.included(base)
       base.before_parse :remove_erb
       base.before_process :unescape_ruby
@@ -50,8 +53,11 @@ module Zafu
       if @params =~ /\A([^>]*?)do\s*=('|")([^\2]*?[^\\])\2([^>]*)\Z/
         #puts $~.to_a.inspect
         # we have a sub 'do'
+
         @params = Markup.parse_params($1)
-        @sub_do = $3 # this is used by replace_with (FIXME)
+
+        # We need this flag to detect cases cases like <r:with part='list' do='other list finder'/>
+        @sub_do = true
 
         opts = {:method=>$3, :params=>$4}
 
