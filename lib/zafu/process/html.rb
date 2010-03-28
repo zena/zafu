@@ -50,16 +50,18 @@ module Zafu
         @markup.compile_params(self)
 
         # [each] is run many times with different roles. Some of these change html_tag_params.
-        @markup_bak = @markup.dup
+      #  @markup_bak = @markup.dup
         true
       end
 
       def wrap_html(text)
-        res = @markup.wrap(text)
-        # restore @markup
-        @markup = @markup_bak
-        res
+        @markup.wrap(text)
       end
+
+      #def restore_markup
+      #  # restore @markup
+      #  @markup = @markup_bak
+      #end
 
       def inspect
         @markup.done = false

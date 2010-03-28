@@ -6,8 +6,31 @@ module Zafu
     module Context
       def r_each
         if node.klass.kind_of?(Array)
-          out "<% #{node}.each do |#{var}| -%>"
-          out render_html_tag(expand_with_node(var, node.klass.first))
+          if @params[:alt_class] || @params[:join]
+            out "<% #{var}_max_index = #{node}.size - 1 -%>" if @params[:alt_reverse]
+            out "<% #{node}.each_with_index do |#{var},#{var}_index| -%>"
+
+            if join = @params[:join]
+              join = ::RubyLess.translate_string(join, self)
+              #if join_clause = @params[:join_if]
+              #  set_stored(Node, 'prev', "#{var}_prev")
+              #  cond = get_test_condition(var, :test=>join_clause)
+              #  out "<%= #{var}_prev = #{node}[#{var}_index - 1]; (#{var}_index > 0 && #{cond}) ? #{join.inspect} : '' %>"
+              #else
+                out "<%= #{var}_index > 0 ? #{join} : '' %>"
+              #end
+            end
+
+            if alt_class = @params[:alt_class]
+              alt_class = ::RubyLess.translate_string(alt_class, self)
+              alt_test = @params[:alt_reverse] == 'true' ? "(#{var}_max_index - #{var}_index) % 2 != 0" : "#{var}_index % 2 != 0"
+              @markup.append_dyn_param(:class, "<= #{alt_test} ? #{alt_class} : '' %>")
+              @markup.tag ||= 'div'
+            end
+          else
+            out "<% #{node}.each do |#{var}| -%>"
+          end
+          out @markup.wrap(expand_with_node(var, node.klass.first))
           out "<% end -%>"
         end
       end

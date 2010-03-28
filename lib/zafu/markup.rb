@@ -106,18 +106,28 @@ module Zafu
 
     # Set dynamic html parameters.
     def set_dyn_params(hash)
-      hash.keys.each do |k|
-        @params.delete(k)
+      hash.each do |k,v|
+        set_dyn_param(k, v)
       end
-      @dyn_params.merge!(hash)
+    end
+
+    # Set dynamic html parameters.
+    def set_dyn_param(key, value)
+      @params.delete(key)
+      @dyn_params[key] = value
     end
 
     # Set static html parameters.
     def set_params(hash)
-      hash.keys.each do |k|
-        @dyn_params.delete(k)
+      hash.each do |k,v|
+        set_param(k, v)
       end
-      @params.merge!(hash)
+    end
+
+    # Set static html parameters.
+    def set_param(key, value)
+      @dyn_params.delete(key)
+      @params[key] = value
     end
 
     def prepend_param(key, value)

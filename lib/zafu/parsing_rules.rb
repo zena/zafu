@@ -12,7 +12,11 @@ module Zafu
     # The markup (of class Markup) holds information on the tag (<li>), tag attributes (.. class='foo') and
     # indentation information that should be used when rendered. This context is not inherited.
     attr_accessor :markup
-
+    
+    def self.included(base)
+      base.before_parse :remove_erb
+    end
+    
     # This callback is run just after the block is initialized (Parser#initialize).
     def start(mode)
       # tag_context
@@ -77,10 +81,21 @@ module Zafu
       end
     end
 
-    def before_parse(text)
+    def remove_erb(text)
       text.gsub('<%', '&lt;%').gsub('%>', '%&gt;')
     end
-
+    
+    def single_child_method
+      return @single_child_method if defined?(@single_child_method)
+      @single_child_method = if @blocks.size == 1
+        single_child = @blocks[0]
+        return nil if single_child.kind_of?(String)
+        single_child.markup.tag ? nil : single_child.method
+      else
+        nil
+      end
+    end
+    
     # scan rules
     def scan
       # puts "SCAN(#{@method}): [#{@text}]"

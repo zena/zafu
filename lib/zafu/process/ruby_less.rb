@@ -8,6 +8,7 @@ module Zafu
       # searches inside a 'helpers' module and finally looks into the current node_context.
       # If nothing is found at this stage, we prepend the method with the current node and start over again.
       def safe_method_type(signature)
+        #puts [node.name, node.klass, signature].inspect
         super || get_method_type(signature, false)
       end
 
@@ -61,18 +62,27 @@ module Zafu
       end
 
       def set_markup_attr(markup, key, value)
+        value = value.kind_of?(::RubyLess::TypedString) ? value : ::RubyLess.translate_string(value, self)
+        if value.literal
+          markup.set_param(key, value.literal)
+        else
+          markup.set_dyn_param(key, "<%= #{value} %>")
+        end
+      end
+
+      def append_markup_attr(markup, key, value)
         value = ::RubyLess.translate_string(value, self)
         if value.literal
-          markup.set_params key => value.literal
+          markup.append_param(key, value.literal)
         else
-          markup.set_dyn_params key => "<%= #{value} %>"
+          markup.append_dyn_param(key, "<%= #{value} %>")
         end
       end
 
       private
         def get_method_type(signature, added_options = false)
           if type = node_context_from_signature(signature)
-            # Resolve @page, @node
+            # Resolve self, @page, @node
             type
           elsif type = safe_method_from(helper, signature)
             # Resolve template helper methods
@@ -111,10 +121,10 @@ module Zafu
           arguments = []
           keys = params.keys.map {|k| k.to_s}
           keys.sort.each do |k|
-            if k.to_s =~ /\A_/
+            if k =~ /\A_/
               arguments << params[k.to_sym]
             else
-              hash_arguments[k.to_s] = params[k.to_sym]
+              hash_arguments[k] = params[k.to_sym]
             end
           end
 
@@ -166,11 +176,12 @@ module Zafu
           nil
         end
 
-        # This is used to resolve '@node' as NodeContext with class Node, '@page' as first NodeContext
-        # of type Page, etc.
+        # This is used to resolve 'this' (current NodeContext), '@node' as NodeContext with class Node,
+        # '@page' as first NodeContext of type Page, etc.
         def node_context_from_signature(signature)
           return nil unless signature.size == 1
           ivar = signature.first
+          return {:class => node.klass, :method => node.name} if ivar == 'this'
           return nil unless ivar[0..0] == '@'
           begin
             klass = Module.const_get(ivar[1..-1].capitalize)
