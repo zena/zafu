@@ -66,17 +66,32 @@ class MarkupTest < Test::Unit::TestCase
   end
 
   context 'Stealing html params' do
-    setup do
-      @markup = Markup.new('p')
+    subject do
+      Markup.new('p')
     end
 
-    should 'remove common html params' do
+    should 'transfer common html params' do
       base = {:class => 'blue', :name => 'sprout', :id => 'front_cover', :style => 'padding:5px;', :attr => 'title'}
-      @markup.steal_html_params_from(base)
+      subject.steal_html_params_from(base)
       new_base = {:name => 'sprout', :attr => 'title'}
       markup_params = {:class => 'blue', :id => 'front_cover', :style => 'padding:5px;'}
       assert_equal new_base, base
-      assert_equal markup_params, @markup.params
+      assert_equal markup_params, subject.params
+    end
+    
+    context 'on a link' do
+      subject do
+        Markup.new('link')
+      end
+      
+      should 'transfer common html params' do
+        base = {:rel => 'rel', :type => 'type', :class => 'blue', :name => 'sprout', :id => 'front_cover', :style => 'padding:5px;', :attr => 'title'}
+        subject.steal_html_params_from(base)
+        new_base = {:class => 'blue', :name => 'sprout', :id => 'front_cover', :style => 'padding:5px;', :attr => 'title'}
+        markup_params = {:type=>"type", :rel=>"rel"}
+        assert_equal new_base, base
+        assert_equal markup_params, subject.params
+      end
     end
   end
 

@@ -7,7 +7,7 @@ module Zafu
       end
 
       def r_else
-        return nil unless @context[:in_if]
+        return '' unless @context[:in_if]
         # We use 'elsif' just in case there are more then one 'else' clause
         out "<% elsif true -%>#{expand_with(:in_if => false)}" # do not propagate
       end
@@ -21,10 +21,6 @@ module Zafu
       def node(klass = nil)
         return @context[:node] if !klass
         @context[:node].get(klass)
-      end
-
-      def expand_with_node(name, klass)
-        expand_with(:node => @context[:node].move_to(name, klass))
       end
 
       # def context_with_node(name, klass)

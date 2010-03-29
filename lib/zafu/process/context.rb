@@ -49,8 +49,8 @@ module Zafu
         @context[:node].get(klass)
       end
 
-      def expand_with_node(name, klass)
-        expand_with(:node => @context[:node].move_to(name, klass))
+      def expand_with_node(name, klass, opts = {})
+        expand_with(opts.merge(:node => @context[:node].move_to(name, klass)))
       end
 
       # def context_with_node(name, klass)

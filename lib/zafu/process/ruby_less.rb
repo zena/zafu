@@ -3,7 +3,12 @@ require 'rubyless'
 module Zafu
   module Process
     module RubyLess
-      include ::RubyLess::SafeClass
+      include ::RubyLess
+
+      def self.included(base)
+        base.process_unknown :rubyless_eval
+      end
+
       # Actual method resolution. The lookup first starts in the current helper. If nothing is found there, it
       # searches inside a 'helpers' module and finally looks into the current node_context.
       # If nothing is found at this stage, we prepend the method with the current node and start over again.
@@ -14,7 +19,7 @@ module Zafu
 
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
-      def r_unknown
+      def rubyless_eval
         if @method =~ /^[A-Z]/
           return rubyless_class_scope(@method)
         end
@@ -26,7 +31,7 @@ module Zafu
           rubyless_render(@method, @params)
         end
       rescue ::RubyLess::NoMethodError => err
-        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>", err.receiver_with_class)
+        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>")
       rescue ::RubyLess::Error => err
         parser_error(err.message)
       end
@@ -157,7 +162,7 @@ module Zafu
             out "<%= #{res} %>"
           elsif res.could_be_nil?
             out "<% if #{var} = #{res} -%>"
-            out @markup.wrap(expand_with_node(var, res.klass))
+            out @markup.wrap(expand_with_node(var, res.klass, :in_if => true))
             out "<% end -%>"
           else
             out "<% #{var} = #{res} -%>"

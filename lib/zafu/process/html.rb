@@ -2,7 +2,6 @@ module Zafu
   module Process
     module HTML
       def self.included(base)
-        base.before_process :compile_html_params
         base.wrap  :wrap_html
       end
 
@@ -20,7 +19,7 @@ module Zafu
         # the pre-processor)
 
         if new_obj.params[:method]
-          @method   = new_obj.params[:method] if new_obj.params[:method]
+          @method   = new_obj.params[:method]
         elsif new_obj.sub_do
           @method = 'void'
         end
@@ -53,10 +52,10 @@ module Zafu
 
         # [each] is run many times with different roles. Some of these change html_tag_params.
       #  @markup_bak = @markup.dup
-        true
       end
 
       def wrap_html(text)
+        compile_html_params
         @markup.wrap(text)
       end
 
@@ -111,57 +110,59 @@ module Zafu
           type = @markup.tag.to_sym
         end
 
-        src = @params[key]
-        if src && src[0..0] != '/' && src[0..6] != 'http://'
-          @params[key] = helper.send(:template_url_for_asset, :src => src, :base_path => @options[:base_path], :type => type)
+        src = @params.delete(key)
+        if src && src[0..6] != 'http://'
+          @markup.params[key] = helper.send(:template_url_for_asset, :src => src, :base_path => @options[:base_path], :type => type)
         end
+
+        @markup.steal_html_params_from(@params)
 
         expand_with
       end
 
-      def r_form
-        res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup.done = true
-        inner = expand_with
-        if inner == ''
-          res + "/>"
-        else
-          res + ">#{inner}"
-        end
-      end
-
-      def r_select
-        res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup.done = true
-        inner = expand_with
-        if inner == ''
-          res + "></#{@markup.tag}>"
-        else
-          res + ">#{inner}"
-        end
-      end
-
-      def r_input
-        res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup.done = true
-        inner = expand_with
-        if inner == ''
-          res + "/>"
-        else
-          res + ">#{inner}"
-        end
-      end
-
-      def r_textarea
-        res   = "<#{@markup.tag}#{params_to_html(@params)}"
-        @markup.done = true
-        inner = expand_with
-        if inner == ''
-          res + "/>"
-        else
-          res + ">#{inner}"
-        end
-      end
+      #def r_form
+      #  res   = "<#{@markup.tag}#{params_to_html(@params)}"
+      #  @markup.done = true
+      #  inner = expand_with
+      #  if inner == ''
+      #    res + "/>"
+      #  else
+      #    res + ">#{inner}"
+      #  end
+      #end
+      #
+      #def r_select
+      #  res   = "<#{@markup.tag}#{params_to_html(@params)}"
+      #  @markup.done = true
+      #  inner = expand_with
+      #  if inner == ''
+      #    res + "></#{@markup.tag}>"
+      #  else
+      #    res + ">#{inner}"
+      #  end
+      #end
+      #
+      #def r_input
+      #  res   = "<#{@markup.tag}#{params_to_html(@params)}"
+      #  @markup.done = true
+      #  inner = expand_with
+      #  if inner == ''
+      #    res + "/>"
+      #  else
+      #    res + ">#{inner}"
+      #  end
+      #end
+      #
+      #def r_textarea
+      #  res   = "<#{@markup.tag}#{params_to_html(@params)}"
+      #  @markup.done = true
+      #  inner = expand_with
+      #  if inner == ''
+      #    res + "/>"
+      #  else
+      #    res + ">#{inner}"
+      #  end
+      #end
     end # HTML
   end # Process
 end # Zafu

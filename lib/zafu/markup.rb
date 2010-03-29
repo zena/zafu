@@ -4,8 +4,11 @@ module Zafu
   # A Markup object is used to hold information on the tag used (<li>), it's parameters (.. class='xxx') and
   # indentation.
   class Markup
-    EMPTY_TAGS   = %w{meta input}
-    STEAL_PARAMS = [:class, :id, :style]
+    EMPTY_TAGS   = %w{meta input link}
+    STEAL_PARAMS = {
+      'link'  => [:href, :rel, :type, :media],
+      :other  => [:class, :id, :style],
+    }
 
     # Tag used ("li" for example). The tag can be nil (no tag).
     attr_accessor :tag
@@ -83,7 +86,7 @@ module Zafu
     # Steal html parameters from an existing hash (the stolen parameters are removed
     # from the argument)
     def steal_html_params_from(p)
-      STEAL_PARAMS.each do |k|
+      steal_keys.each do |k|
         next unless p[k]
         @params[k] = p.delete(k)
       end
@@ -220,6 +223,10 @@ module Zafu
         end
 
         para
+      end
+
+      def steal_keys
+        STEAL_PARAMS[@tag] || STEAL_PARAMS[:other]
       end
   end
 end

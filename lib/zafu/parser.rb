@@ -10,11 +10,11 @@ module Zafu
 
   class Parser
     TEXT_CALLBACKS    = %w{before_parse after_parse before_wrap wrap after_wrap}
-    PROCESS_CALLBACKS = %w{before_process after_process}
+    PROCESS_CALLBACKS = %w{before_process process_unknown after_process}
     CALLBACKS         = TEXT_CALLBACKS + PROCESS_CALLBACKS
 
     @@callbacks = {}
-    attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent
+    attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent, :errors
     # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
     attr_accessor :params
 
@@ -31,10 +31,6 @@ module Zafu
         res = helper.send(:get_template_text, path, base_path)
         return [parser_error("template '#{path}' not found", 'include'), nil, nil] unless res
         res
-      end
-
-      def parser_error(message, method)
-        "<span class='parser_error'><span class='method'>#{method}</span> #{message}</span>"
       end
 
       CALLBACKS.each do |clbk|
@@ -73,10 +69,26 @@ module Zafu
       }
     end
 
+    def parser_error(message, method = @method)
+      @errors << "<span class='parser_error'><span class='method'>#{method}</span> <span class='message'>#{message}</span></span>"
+      nil
+    end
+
+    def process_unknown
+      self.class.process_unknown_callbacks.each do |callback|
+        if res = send(callback)
+          return res
+        end
+      end
+      @errors.empty? ? default_unknown : @errors.join(' ')
+    end
+
+
     def initialize(text, opts={})
       @stack   = []
       @ok      = true
       @blocks  = []
+      @errors  = []
 
       @options = {:mode=>:void, :method=>'void'}.merge(opts)
       @params  = @options.delete(:params) || {}
@@ -155,7 +167,7 @@ module Zafu
       if respond_to?("r_#{@method}".to_sym)
         res = do_method("r_#{@method}".to_sym)
       else
-        res = do_method(:r_unknown)
+        res = do_method(:process_unknown)
       end
 
       res = before_wrap(res)
@@ -195,7 +207,7 @@ module Zafu
     end
 
     # basic rule to display errors
-    def r_unknown
+    def default_unknown
       sp = ""
       @params.each do |k,v|
         sp += " #{k}=#{v.inspect.gsub("'","TMPQUOTE").gsub('"',"'").gsub("TMPQUOTE",'"')}"
@@ -305,6 +317,10 @@ module Zafu
       end.compact.flatten]
     end
 
+    def dynamic_blocks?
+      @blocks.detect { |b| !b.kind_of?(String) }
+    end
+
     def descendants(key)
       all_descendants[key] || []
     end
@@ -370,14 +386,14 @@ module Zafu
     def out(str)
       @result << str
       # Avoid double entry when this is the last call in a render method.
-      nil
+      true
     end
 
     # Output ERB code that will be inserted after @result.
     def out_post(str)
       @out_post << str
       # Avoid double entry when this is the last call in a render method.
-      nil
+      true
     end
 
     # Advance parser.
@@ -571,10 +587,6 @@ module Zafu
         result += "/]"
       end
       result + @text
-    end
-
-    def parser_error(message, method = @method)
-      self.class.parser_error(message, method)
     end
   end # Parser
 end # Zafu
