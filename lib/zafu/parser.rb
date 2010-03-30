@@ -33,6 +33,10 @@ module Zafu
         res
       end
 
+      def parser_error(message, method)
+        "<span class='parser_error'><span class='method'>#{method}: <span class='message'>#{message}</span></span>"
+      end
+
       CALLBACKS.each do |clbk|
         eval %Q{
           attr_accessor :#{clbk}_callbacks

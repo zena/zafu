@@ -1,0 +1,3 @@
+out_post:
+  src: "<r:link post_string='Monday'/>"
+  tem: "<%= make_link(@node) %>Monday"

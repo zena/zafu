@@ -5,7 +5,6 @@ nasty_erb:
 never_end_erb:
   src: "never ending erb  <%= puts "
   tem: "never ending erb  &lt;%= puts "
-  res: "never ending erb  &lt;%= puts "
 
 nasty_evil_erb:
   src: "this <% puts <% puts 'could be' %> %> nasty"
@@ -14,7 +13,6 @@ nasty_evil_erb:
 trick_erb:
   src: "this <<r:void/>% puts 'is bad' %>"
   tem: "this <<r:void/>% puts 'is bad' %&gt;"
-  res: "this <<r:void/>% puts 'is bad' %&gt;"
 
 include_erb:
   src: "include: <r:include template='/nasty_erb'/>"

@@ -1,3 +1,0 @@
-prepend:
-  src: "<r:prepend>Monday</r:prepend>"
-  tem: "<%= prepend(\"Monday\") %>"

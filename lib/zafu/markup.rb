@@ -6,8 +6,9 @@ module Zafu
   class Markup
     EMPTY_TAGS   = %w{meta input link}
     STEAL_PARAMS = {
-      'link'  => [:href, :rel, :type, :media],
-      :other  => [:class, :id, :style],
+      'link'   => [:href, :charset, :rel, :type, :media, :rev, :target],
+      'script' => [:type, :charset, :defer],
+      :other   => [:class, :id, :style],
     }
 
     # Tag used ("li" for example). The tag can be nil (no tag).
@@ -226,7 +227,7 @@ module Zafu
       end
 
       def steal_keys
-        STEAL_PARAMS[@tag] || STEAL_PARAMS[:other]
+        (STEAL_PARAMS[@tag] || []) + STEAL_PARAMS[:other]
       end
   end
 end

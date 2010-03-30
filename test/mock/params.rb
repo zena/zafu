@@ -1,19 +1,13 @@
 module Mock
   module Params
     def self.included(base)
-      base.before_process :filter_params
+      base.before_process :filter_post_string
     end
 
-    def filter_params
-      if klass = @params.delete(:class)
-        if klass =~ /#\{/
-          res = RubyLess.translate("\"#{klass}\"", self)
-          @markup.append_dyn_param(:class, "<%= #{res} %>")
-        else
-          @markup.append_param(:class, klass)
-        end
+    def filter_post_string
+      if str = @params.delete(:post_string)
+        out_post str
       end
-      true
     end
   end
 end

@@ -87,8 +87,8 @@ class MarkupTest < Test::Unit::TestCase
       should 'transfer common html params' do
         base = {:rel => 'rel', :type => 'type', :class => 'blue', :name => 'sprout', :id => 'front_cover', :style => 'padding:5px;', :attr => 'title'}
         subject.steal_html_params_from(base)
-        new_base = {:class => 'blue', :name => 'sprout', :id => 'front_cover', :style => 'padding:5px;', :attr => 'title'}
-        markup_params = {:type=>"type", :rel=>"rel"}
+        new_base = {:name => 'sprout', :attr => 'title'}
+        markup_params = {:type=>"type", :rel=>"rel", :id => 'front_cover', :class => 'blue', :style => 'padding:5px;'}
         assert_equal new_base, base
         assert_equal markup_params, subject.params
       end

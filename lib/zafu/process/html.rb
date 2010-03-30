@@ -39,7 +39,7 @@ module Zafu
       end
 
       def compile_html_params
-        @markup.done = false
+        return if @markup.done
         unless @markup.tag
           if @markup.tag = @params.delete(:tag)
             @markup.steal_html_params_from(@params)

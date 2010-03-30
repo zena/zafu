@@ -10,7 +10,7 @@ class ZafuTest < Test::Unit::TestCase
   include RubyLess
   include Zafu::TestHelper
   safe_method :one => {:class => String, :method => "main_one"}
-  
+
   class Dummy
     include RubyLess
     safe_method :hello => String
@@ -42,16 +42,33 @@ class ZafuTest < Test::Unit::TestCase
       end
     end
   end
-  
-  context 'a custom compiler' do
-    setup do
-      @compiler = TestCompiler
-    end
-    
-    should 'execute before_process callbacks' do
-      res = zafu_erb("<p class='simple' do='one' class='foo\#{dum.one}'/>", self, @compiler)
-      assert_match %r{class='simple <%= "foo\#\{dum.dummy_one\}"}, res
+
+  # ========== YAML TESTS
+
+  yamltest
+
+  def get_template_text(path, base_path)
+    folder = base_path.blank? ? [] : base_path.split('/')
+    url    = (folder + path[1..-1].split('/'))
+
+
+    file      = url.shift
+    test_name = url.join('_')
+
+    if test = @@test_strings[file][test_name]
+      # text, absolute_url, base_path
+      [test['src'], (file + test_name), file]
+    else
+      nil
     end
   end
 
+  def yt_do_test(file, test)
+    url  = "/#{file}/#{test}"
+    tem  = @@test_strings[file][test]['tem']
+    ast  = TestCompiler.new_with_url(url, :helper => self)
+    yt_assert tem, ast.to_erb(:node => Zafu::NodeContext.new('@node', Page), :helper => self)
+  end
+
+  yt_make
 end

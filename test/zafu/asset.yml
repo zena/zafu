@@ -1,5 +1,3 @@
-show_url_in_script:
-  src: "<script type='text/javascript'>
-  alert('hello');
-  </script>"
-  res: "/http://test.host/oo/projects/cleanWater/page22.html/"
+should_parse_script_tags_and_keep_params:
+  src: "<script type='text/javascript'>alert('hello');</script>"
+  tem: "<script type='text/javascript'>alert('hello');</script>"

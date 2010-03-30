@@ -1,9 +1,6 @@
 require 'test_helper'
 
 class NodeContextTest < Test::Unit::TestCase
-  class Page;end
-  class SubPage < Page; end
-  class Comment;end
   NodeContext = Zafu::NodeContext
 
   context 'In a blank context' do
@@ -18,15 +15,15 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return the current class' do
       assert_equal Page, @context.klass
     end
-    
+
     should 'return true on will_be with the same class' do
       assert @context.will_be?(Page)
     end
-    
+
     should 'return false on will_be with a sub class' do
       assert !@context.will_be?(SubPage)
     end
-    
+
     should 'return false on will_be with a different class' do
       assert !@context.will_be?(String)
     end
@@ -38,12 +35,12 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return nil on a get for another class' do
       assert_nil @context.get(Comment)
     end
-    
+
     context 'with a sub-class' do
       setup do
         @context = NodeContext.new('@node', SubPage)
       end
-      
+
       should 'return true on will_be with the same class' do
         assert @context.will_be?(SubPage)
       end
