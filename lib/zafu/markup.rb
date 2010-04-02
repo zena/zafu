@@ -189,6 +189,10 @@ module Zafu
     # after the tag parameters: <li class='foo'[APPEND HERE]>text</li>.
     def wrap(text, *append)
       return text if @done
+      if dyn_params[:id]
+        @tag ||= 'div'
+      end
+
       append ||= []
       if @tag
         if text.blank? && EMPTY_TAGS.include?(@tag)
@@ -202,6 +206,10 @@ module Zafu
       @done = true
 
       (@space_before || '') + res + (@space_after || '')
+    end
+
+    def steal_keys
+      (STEAL_PARAMS[@tag] || []) + STEAL_PARAMS[:other]
     end
 
     private
@@ -226,8 +234,5 @@ module Zafu
         para
       end
 
-      def steal_keys
-        (STEAL_PARAMS[@tag] || []) + STEAL_PARAMS[:other]
-      end
   end
 end

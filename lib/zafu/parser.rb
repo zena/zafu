@@ -22,7 +22,7 @@ module Zafu
       def new_with_url(path, opts={})
         helper = opts[:helper] || Zafu::MockHelper.new
         text, fullpath, base_path = self.get_template_text(path, helper)
-        self.new(text, :helper => helper, :base_path => base_path, :included_history => [fullpath])
+        self.new(text, :helper => helper, :base_path => base_path, :included_history => [fullpath], :root => path)
       end
 
       # Retrieve the template text in the current folder or as an absolute path.
@@ -73,6 +73,18 @@ module Zafu
       }
     end
 
+    # This method is called at the very beginning of the processing chain and is
+    # used to store state to make 'process' reintrant...
+    def save_state
+      {
+       :@context  => @context,
+       :@result   => @result,
+       :@out_post => @out_post,
+       :@params   => @params,
+       :@method   => @method,
+      }
+    end
+
     def parser_error(message, method = @method)
       @errors << "<span class='parser_error'><span class='method'>#{method}</span> <span class='message'>#{message}</span></span>"
       nil
@@ -84,9 +96,12 @@ module Zafu
           return res
         end
       end
-      @errors.empty? ? default_unknown : @errors.join(' ')
+      @errors.empty? ? default_unknown : show_errors
     end
 
+    def show_errors
+      @errors.join(' ')
+    end
 
     def initialize(text, opts={})
       @stack   = []
@@ -154,6 +169,8 @@ module Zafu
     end
 
     def process(context={})
+      saved = save_state
+
       if @name
         # we pass the name as 'context' in the children tags
         @context = context.merge(:name => @name)
@@ -180,6 +197,11 @@ module Zafu
       res = after_wrap(res) + @text
 
       after_process
+
+      # restore state
+      saved.each do |key, value|
+        instance_variable_set(key, value)
+      end
 
       res
     end

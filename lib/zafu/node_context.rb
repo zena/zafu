@@ -36,8 +36,22 @@ module Zafu
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
     # from a direct 'show' in a controller). The returned node context has no parent (up is nil).
     # The convention is to use the class of the current object to build this name.
-    def as_main
+    # You can also use an 'after_class' parameter to move up in the current object's class hierarchy (see #master_class).
+    def as_main(after_class = nil)
+      klass = after_class ? master_class(after_class) : self.klass
       NodeContext.new("@#{klass.to_s.underscore}", klass)
+    end
+
+    # Find the class just afer 'after_class' in the class hierarchy.
+    # For example if we have Dog < Mamal < Animal < Creature,
+    # master_class(Creature) would return Animal
+    def master_class(after_class)
+      klass = self.klass
+      begin
+        up = klass.superclass
+        return klass if up == after_class
+      end while klass = up
+      return self.klass
     end
 
     # Generate a unique DOM id for this element based on dom_scopes defined in parent contexts.
@@ -52,7 +66,7 @@ module Zafu
     end
 
     # This holds the current context's unique name if it has it's own or one from the hierarchy. If
-    # none is found, it builds one... How ?
+    # none is found, it builds one.
     def dom_prefix
       @dom_prefix || (@up ? @up.dom_prefix : nil)
     end

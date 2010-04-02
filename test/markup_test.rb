@@ -330,6 +330,18 @@ class MarkupTest < Test::Unit::TestCase
       end
     end
   end
+  
+  context 'Duplicating a markup and wrapping' do
+    setup do
+      @markup = Markup.new('p')
+      @duplicate = @markup.dup
+    end
+    
+    should 'not propagate done to duplicate' do
+      @markup.wrap('')
+      assert_equal '<p>one</p>', @duplicate.wrap('one')
+    end
+  end
 end
 
 

@@ -27,10 +27,7 @@ module Zafu
       @markup = Markup.new(@options.delete(:html_tag))
 
       # html_tag
-      @markup.params = @options.delete(:html_tag_params) # @html_tag_params
-
-      # have we already wrapped the result with our tag ?
-      @markup.done = false # @html_tag_done
+      @markup.params = @options.delete(:html_tag_params)
 
       # end_tag is used to know when to close parsing in sub-do
       # Example:
