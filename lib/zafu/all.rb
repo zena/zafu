@@ -8,10 +8,10 @@ require 'zafu/process/conditional'
 module Zafu
   All = [
     Zafu::ParsingRules,
-    Zafu::Process::Ajax,
     Zafu::Process::HTML,
     Zafu::Process::Context,
     Zafu::Process::Conditional,
-    Zafu::Process::RubyLess
+    Zafu::Process::RubyLess,
+    Zafu::Process::Ajax,
   ]
 end

@@ -1,8 +1,9 @@
 == 0.6.0
 
-* 2 major enhancements
+* 3 major enhancements
   * Added rubyless_class_scope to filter evaluation on class type.
   * Started to move tests from Zena.
+  * Added 'up(klass)' method.
 
 * 1 minor enhancement
   * Added 'has_param' to the Markup object.

@@ -41,12 +41,12 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return nil on a get for another class' do
       assert_nil subject.get(Comment)
     end
-    
+
     context 'calling as_main' do
       should 'build the name from the class' do
         assert_equal '@page', subject.as_main.name
       end
-      
+
       should 'return same class' do
         assert_equal subject.klass, subject.as_main.klass
       end
@@ -68,7 +68,7 @@ class NodeContextTest < Test::Unit::TestCase
       should 'return false on will_be with a different class' do
         assert !subject.will_be?(String)
       end
-      
+
       context 'calling as_main' do
         should 'build the name from the class' do
           assert_equal '@sub_page', subject.as_main.name
@@ -77,7 +77,7 @@ class NodeContextTest < Test::Unit::TestCase
         should 'return same class' do
           assert_equal subject.klass, subject.as_main.klass
         end
-        
+
         should 'return an ancestor when using after_class argument' do
           subject = NodeContext.new('@node', SubSubPage)
           assert_equal SubPage, subject.as_main(Page).klass
@@ -138,6 +138,10 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return nil if no ancestor matches class on get' do
       assert_nil subject.get(Fixnum)
     end
+
+    should 'return the parent on up' do
+      assert_equal @mother, subject.up
+    end
   end
 
   context 'In a sub-classes context' do
@@ -151,14 +155,27 @@ class NodeContextTest < Test::Unit::TestCase
   end
 
   context 'In a list context' do
+    setup do
+      @grandma = NodeContext.new('@page', Page)
+      @mother = @grandma.move_to('@comment', Comment)
+    end
+    
     subject do
-      NodeContext.new('list', [Page])
+      @mother.move_to('list', [Page])
     end
 
     should 'find the context and resolve with first' do
       assert context = subject.get(Page)
       assert_equal 'list.first', context.name
       assert_equal Page, context.klass
+    end
+
+    should 'return parent on up with class' do
+      assert_equal @grandma, subject.up(Page)
+    end
+    
+    should 'return true on will_be with the same class' do
+      assert subject.will_be?(Page)
     end
   end
 

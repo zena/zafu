@@ -30,7 +30,7 @@ module Zafu
     # Return true if the NodeContext represents an element of the given type. We use 'will_be' because
     # it is equivalent to 'is_a', but for future objects (during rendering).
     def will_be?(type)
-      klass.ancestors.include?(type)
+      klass.kind_of?(Array) ? klass.first.ancestors.include?(type) : klass.ancestors.include?(type)
     end
 
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
@@ -93,6 +93,10 @@ module Zafu
       else
         nil
       end
+    end
+
+    def up(klass = nil)
+      klass ? @up.get(klass) : @up
     end
 
     def list_context?

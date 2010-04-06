@@ -49,8 +49,39 @@ module Zafu
         @context[:node].get(klass)
       end
 
-      def expand_with_node(name, klass, opts = {})
-        expand_with(opts.merge(:node => @context[:node].move_to(name, klass)))
+      # Expand with a new node context.
+      def expand_with_finder(finder)
+        klass = finder[:class]
+        if klass.kind_of?(Array)
+          do_list(finder)
+        else
+          do_var(finder)
+        end
+      end
+
+      # Expand blocks in a new list context.
+      # This method is overwriten in Ajax
+      def do_list(finder)
+        if finder[:nil]
+          out "<% if #{var} = #{finder[:method]} -%>"
+          open_node_context(finder, :node => node.move_to(var, finder[:class])) do
+            out @markup.wrap(expand_with(:in_if => true))
+          end
+          out "<% end -%>"
+        else
+          out "<% #{var} = #{finder[:method]} -%>"
+          open_node_context(finder, :node => node.move_to(var, finder[:class])) do
+            out @markup.wrap(expand_with)
+          end
+        end
+      end
+
+      # Expand blocks in a new var context.
+      def do_var(finder)
+        out "<% #{var} = #{finder[:method]} -%>"
+        open_node_context(finder, :node => node.move_to(var, finder[:class])) do
+          out @markup.wrap(expand_with)
+        end
       end
 
       # def context_with_node(name, klass)
@@ -64,6 +95,40 @@ module Zafu
           @var = "var#{$1.to_i + 1}"
         else
           @var = "var1"
+        end
+      end
+
+      # This method is called when we enter a new node context
+      def node_context_vars(finder)
+        # do nothing (this is a hook for other modules like QueryBuilder and RubyLess)
+        {}
+      end
+
+      # Declare a variable that can be used later in the compilation. This method
+      # returns the variable name to use.
+      def set_var(var_list, var_name)
+        var_name = var_name.to_sym
+        out parser_error("'#{var_name}' already defined.") if @context[var_name] || var_list[var_name]
+        var_list[var_name] = "_z#{var_name}"
+      end
+
+      # Change context for a given scope.
+      def with_context(cont)
+        raise "Block missing" unless block_given?
+        cont_bak = @context.dup
+          @context.merge!(cont)
+          res = yield
+        @context = cont_bak
+        res
+      end
+
+      # This should be called when we enter a new node context so that the proper hooks are
+      # triggered (insertion of contextual variables).
+      def open_node_context(finder, cont = {})
+        sub_context = node_context_vars(finder).merge(cont)
+        
+        with_context(sub_context) do
+          yield
         end
       end
     end # Context

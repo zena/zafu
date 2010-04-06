@@ -161,12 +161,9 @@ module Zafu
           elsif @blocks.empty?
             out "<%= #{res} %>"
           elsif res.could_be_nil?
-            out "<% if #{var} = #{res} -%>"
-            out @markup.wrap(expand_with_node(var, res.klass, :in_if => true))
-            out "<% end -%>"
+            expand_with_finder(:method => res, :class => res.klass, :nil => true)
           else
-            out "<% #{var} = #{res} -%>"
-            out @markup.wrap(expand_with_node(var, res.klass))
+            expand_with_finder(:method => res, :class => res.klass)
           end
         end
 

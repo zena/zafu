@@ -5,6 +5,111 @@ module Zafu
         super.merge(:@markup => @markup.dup)
       end
 
+
+      # This method process a list and handles building the necessary templates for ajax 'add'.
+
+      def do_list(finder)
+
+        # Get the block responsible for rendering each elements in the list
+        each_block = descendant('each')
+        add_block  = descendant('add')
+        form_block = descendant('form') || each_block
+        edit_block = descendant('edit')
+
+        # New node context.
+        node = self.node.move_to(var, finder[:class])
+
+        # Should 'edit' and 'add' auto-publish ?
+        publish_after_save = (form_block && form_block.params[:publish]) ||
+                             (edit_block && edit_block.params[:publish])
+
+        # class name for create form
+        klass       = (add_block  &&  add_block.params[:klass]) ||
+                      (form_block && form_block.params[:klass])
+
+        if need_ajax?(each_block)
+          # We need to build the templates for ajax rendering.
+
+          # 1. Render inline
+          #                                                                                                                 assign [] to var
+          out "<% if (#{var} = #{finder[:method]}) || (#{node.up}.#{node.up.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) -%>"
+          # The list is not empty or we have enough rights to add new elements.
+          open_node_context(finder, :node => node) do #, :need_link_id => form_block.need_link_id) do
+            # Pagination count and other contextual variables exist here.
+
+            # INLINE ==========
+            # 'r_add' needs the form when rendering. Send with :form.
+            out @markup.wrap(
+              expand_with(
+                :in_if              => false,
+                :form               => form_block,
+                :publish_after_save => publish_after_save,
+                :ignore             => ['form'],
+                :klass              => klass
+              )
+            )
+
+            # Render 'else' clauses
+            @markup.done = false
+            out @markup.wrap(
+              expand_with(
+                :in_if => true,
+                :only  => ['elsif', 'else']
+              )
+            )
+          end
+          out "<% end -%>"
+
+          # 2. Save 'each' template
+          store_block(each_block) #, :klass => klass) # do we need klass here ?
+
+          # 3. Save 'form' template
+          cont = {
+            :template_url       => form_url(node),
+            :klass              => klass,
+            :make_form          => each_block == form_block,
+            :publish_after_save => publish_after_save,
+          }
+
+          store_block(form_block, cont)
+        else
+          super
+        end
+
+        # out @markup.wrap(expand_with(:node => node.move_to(var, finder[:class]), :in_if => true))
+
+
+        #query = opts[:query]
+        #
+        #
+        #if need_ajax?
+        #  new_dom_scope
+        #  # ajax, build template. We could merge the following code with 'r_block'.
+        #
+        #  # FORM ============
+        #  if each_block != form_block
+        #    form = expand_block(form_block, :klass => klass, :add=>add_block, :publish_after_save => publish_after_save, :saved_template => true)
+        #  else
+        #    form = expand_block(form_block, :klass => klass, :add=>add_block, :make_form=>true, :publish_after_save => publish_after_save, :saved_template => true)
+        #  end
+        #  out helper.save_erb_to_url(form, form_url)
+        #else
+        #  # no form, render, edit and add are not ajax
+        #  if descendant('add') || descendant('add_document')
+        #    out "<% if (#{list_var} = #{list_finder}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{list_var}=[]) -%>"
+        #  elsif list_finder != 'nil'
+        #    out "<% if #{list_var} = #{list_finder} -%>"
+        #  else
+        #    out "<% if nil -%>"
+        #  end
+        #
+        #
+        #  out render_html_tag(expand_with(:list=>list_var, :in_if => false))
+        #  out expand_with(:in_if=>true, :only=>['elsif', 'else'], :html_tag => @html_tag, :html_tag_params => @html_tag_params)
+        #  out "<% end -%>"
+        #end
+      end
+
       # Store a context as a sub-template that can be used in ajax calls
       def r_block
         # Since we are using ajax, we will need this object to have an ID set.
@@ -28,75 +133,70 @@ module Zafu
         end
       end
 
-      # def r_add
-      #   return parser_error("should not be called from within 'each'") if parent.method == 'each'
-      #   return '' if @context[:make_form]
-      #
-      #   # why is node = @node (which we need) but we are supposed to have Comments ?
-      #   # FIXME: during rewrite, replace 'node' by 'node(klass = node_class)' so the ugly lines below would be
-      #   # if node.will_be?(Comment)
-      #   #   out "<% if #{node(Node)}.can_comment? -%>"
-      #   # Refs #198.
-      #   if node.will_be?(Comment)
-      #     out "<% if #{node}.can_comment? -%>"
-      #   else
-      #     out "<% if #{node}.can_write? -%>"
-      #   end
-      #
-      #   unless descendant('add_btn')
-      #     # add a descendant between self and blocks.
-      #     blocks = @blocks.dup
-      #     @blocks = []
-      #     add_btn = make(:void, :method=>'add_btn', :params=>@params.dup, :text=>'')
-      #     add_btn.blocks = blocks
-      #     remove_instance_variable(:@all_descendants)
-      #   end
-      #
-      #   if @context[:form] && @context[:dom_prefix]
-      #     # ajax add
-      #
-      #     @html_tag_params.merge!(:id => "#{erb_dom_id}_add")
-      #     @html_tag_params[:class] ||= 'btn_add'
-      #     if @params[:focus]
-      #       focus = "$(\"#{erb_dom_id}_#{@params[:focus]}\").focus();"
-      #     else
-      #       focus = "$(\"#{erb_dom_id}_form_t\").focusFirstElement();"
-      #     end
-      #
-      #     out render_html_tag("#{expand_with(:onclick=>"[\"#{erb_dom_id}_add\", \"#{erb_dom_id}_form\"].each(Element.toggle);#{focus}return false;")}")
-      #
-      #     if node.will_be?(Node)
-      #       # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
-      #       klass = @context[:klass] || 'Node'
-      #       # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
-      #       out "<% if #{var}_new = secure(Node) { Node.new_from_class(#{klass.inspect}) } -%>"
-      #     else
-      #       out "<% if #{var}_new = #{node_class}.new -%>"
-      #     end
-      #
-      #     if @context[:form].method == 'form'
-      #       out expand_block(@context[:form], :in_add => true, :no_ignore => ['form'], :add=>self, :node => "#{var}_new", :parent_node => node, :klass => klass, :publish_after_save => auto_publish_param)
-      #     else
-      #       # build form from 'each'
-      #       out expand_block(@context[:form], :in_add => true, :no_ignore => ['form'], :add=>self, :make_form => true, :node => "#{var}_new", :parent_node => node, :klass => klass, :publish_after_save => auto_publish_param)
-      #     end
-      #     out "<% end -%>"
-      #   else
-      #     # no ajax
-      #     @html_tag_params[:class] ||= 'btn_add' if @html_tag
-      #     out render_html_tag(expand_with)
-      #   end
-      #   out "<% end -%>"
-      #   @html_tag_done = true
-      # end
+      def r_add
+        return parser_error("Should not be called from within 'each'") if parent.method == 'each'
+        return '' if @context[:make_form]
+
+        if node.will_be?(Comment)
+          out "<% if #{node.up(Node)}.can_comment? -%>"
+        else
+          out "<% if #{node.up(Node)}.can_write? -%>"
+        end
+
+        unless descendant('add_btn')
+          # Add a descendant between self and blocks. ==> add( add_btn(blocks) )
+          blocks = @blocks.dup
+          @blocks = []
+          add_btn = make(:void, :method=>'add_btn', :params=>@params.dup, :text=>'')
+          add_btn.blocks = blocks
+          remove_instance_variable(:@all_descendants)
+        end
+
+        if @context[:form] && @context[:dom_prefix]
+          # ajax add
+          @markup.set_id("#{node.dom_id}_add")
+          @markup.append_param(:class, 'btn_add')
+
+          # if @params[:focus]
+          #   focus = "$(\"#{erb_dom_id}_#{@params[:focus]}\").focus();"
+          # else
+          #   focus = "$(\"#{erb_dom_id}_form_t\").focusFirstElement();"
+          # end
+
+          out @markup.wrap("#{expand_with(:onclick=>"[\"#{erb_dom_id}_add\", \"#{erb_dom_id}_form\"].each(Element.toggle);#{focus}return false;")}")
+
+          if node.will_be?(Node)
+            # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
+            klass = node.klass
+
+            # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
+            out "<% if #{var}_new = secure(Node) { Node.new_from_class('#{klass}') } -%>"
+          else
+            out "<% if #{var}_new = #{node.klass}.new -%>"
+          end
+
+          if @context[:form].method == 'form'
+            out expand_block(@context[:form], :in_add => true, :no_ignore => ['form'], :add=>self, :node => "#{var}_new", :parent_node => node, :klass => klass, :publish_after_save => auto_publish_param)
+          else
+            # build form from 'each'
+            out expand_block(@context[:form], :in_add => true, :no_ignore => ['form'], :add=>self, :make_form => true, :node => "#{var}_new", :parent_node => node, :klass => klass, :publish_after_save => auto_publish_param)
+          end
+          out "<% end -%>"
+        else
+          # no ajax
+          @html_tag_params[:class] ||= 'btn_add' if @html_tag
+          out @markup.wrap(expand_with)
+        end
+        out "<% end -%>"
+      end
 
       # Unique template_url, ending with dom_id
-      def template_url
+      def template_url(node)
         "#{@options[:root]}/#{node.dom_prefix}"
       end
 
-      def form_url
-        template_url + '_form'
+      def form_url(node)
+        template_url(node) + '_form'
       end
 
       # Return a different name on each call
@@ -119,15 +219,35 @@ module Zafu
         end
       end
 
+
+
       private
-        def store_block(block)
+        def store_block(block, cont = {})
+          cont = @context.merge(cont)
+
           # Create new node context
-          node = block.context[:node].as_main(ActiveRecord::Base)
+          node = cont[:node].as_main(ActiveRecord::Base)
           node.dom_prefix = @name
 
-          template = expand_block(block, :template_url => block.template_url, :node => node, :block => block)
+          cont[:template_url] ||= template_url(node)
 
-          out helper.save_erb_to_url(template, template_url)
+          template = expand_block(block, cont.merge(:node => node, :block => block))
+
+          out helper.save_erb_to_url(template, cont[:template_url])
+        end
+
+        def need_ajax?(each_block)
+          return false unless each_block
+          # Inline editable
+          each_block.descendant('edit') ||
+          # Ajax add
+          descendant('add') ||
+          # List is reloaded from the 'add_document' popup
+          descendant('add_document') ||
+          # We use 'each' as block to render swap
+          (descendant('swap') && descendant('swap').parent.method != 'block') ||
+          # We use 'each' as block instead of the declared 'block' or 'drop'
+          ['block', 'drop'].include?(each_block.single_child_method)
         end
 
         #template = expand_block(self, :)
