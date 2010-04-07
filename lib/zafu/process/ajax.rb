@@ -16,8 +16,6 @@ module Zafu
         form_block = descendant('form') || each_block
         edit_block = descendant('edit')
 
-        # New node context.
-        node = self.node.move_to(var, finder[:class])
 
         # Should 'edit' and 'add' auto-publish ?
         publish_after_save = (form_block && form_block.params[:publish]) ||
@@ -32,10 +30,13 @@ module Zafu
 
           # 1. Render inline
           #                                                                                                                 assign [] to var
-          out "<% if (#{var} = #{finder[:method]}) || (#{node.up}.#{node.up.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) -%>"
+          out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) -%>"
           # The list is not empty or we have enough rights to add new elements.
-          open_node_context(finder, :node => node) do #, :need_link_id => form_block.need_link_id) do
+
+          # New node context.
+          open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do #, :need_link_id => form_block.need_link_id) do
             # Pagination count and other contextual variables exist here.
+            set_dom_prefix
 
             # INLINE ==========
             # 'r_add' needs the form when rendering. Send with :form.
@@ -113,8 +114,7 @@ module Zafu
       # Store a context as a sub-template that can be used in ajax calls
       def r_block
         # Since we are using ajax, we will need this object to have an ID set.
-        @name ||= unique_name
-        node.dom_prefix = @name
+        set_dom_prefix
 
         if @context[:block] == self
           # Storing template (called from within store_block)
@@ -152,42 +152,68 @@ module Zafu
           remove_instance_variable(:@all_descendants)
         end
 
-        if @context[:form] && @context[:dom_prefix]
+        if @context[:form]
           # ajax add
-          @markup.set_id("#{node.dom_id}_add")
+          @markup.set_id("#{node.dom_prefix}_add")
           @markup.append_param(:class, 'btn_add')
 
-          # if @params[:focus]
-          #   focus = "$(\"#{erb_dom_id}_#{@params[:focus]}\").focus();"
-          # else
-          #   focus = "$(\"#{erb_dom_id}_form_t\").focusFirstElement();"
-          # end
+          if @params[:focus]
+            focus = "$(\"#{node.dom_prefix}_#{@params[:focus]}\").focus();"
+          else
+            focus = "$(\"#{node.dom_prefix}_form_t\").focusFirstElement();"
+          end
 
-          out @markup.wrap("#{expand_with(:onclick=>"[\"#{erb_dom_id}_add\", \"#{erb_dom_id}_form\"].each(Element.toggle);#{focus}return false;")}")
+          # Expand 'add' block
+          out @markup.wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
-          if node.will_be?(Node)
+          # New object to render form
+          new_node = NodeContext.new("#{var}_new", node.klass)
+
+          if new_node.will_be?(Node)
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
-            klass = node.klass
 
             # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
-            out "<% if #{var}_new = secure(Node) { Node.new_from_class('#{klass}') } -%>"
+            out "<% if #{new_node} = secure(Node) { Node.new_from_class('#{new_node.klass}') } -%>"
           else
-            out "<% if #{var}_new = #{node.klass}.new -%>"
+            out "<% if #{new_node} = #{new_node.klass}.new -%>"
           end
 
-          if @context[:form].method == 'form'
-            out expand_block(@context[:form], :in_add => true, :no_ignore => ['form'], :add=>self, :node => "#{var}_new", :parent_node => node, :klass => klass, :publish_after_save => auto_publish_param)
-          else
-            # build form from 'each'
-            out expand_block(@context[:form], :in_add => true, :no_ignore => ['form'], :add=>self, :make_form => true, :node => "#{var}_new", :parent_node => node, :klass => klass, :publish_after_save => auto_publish_param)
-          end
+          # Expand 'form' block
+          out expand_block( @context[:form],
+            # Why do we need this ?
+            :in_add    => true,
+            # ??
+            :no_ignore => ['form'],
+            # ??
+            :add       => self,
+            # Node context = new node
+            :node      => new_node
+          )
           out "<% end -%>"
         else
           # no ajax
-          @html_tag_params[:class] ||= 'btn_add' if @html_tag
+          @markup.append_param(:class, 'btn_add') if @markup.tag
           out @markup.wrap(expand_with)
         end
         out "<% end -%>"
+      end
+
+      def r_add_btn
+        default = node.will_be?(Comment) ? _("btn_add_comment") : _("btn_add")
+
+        out "<a href='#' onclick='#{@context[:onclick]}'>#{text_for_link(default)}</a>"
+      end
+
+
+      # Return true if we need to insert the dom id for this element. This method is overwritten in Ajax.
+      def need_dom_id?
+        @context[:form]
+      end
+
+      # Set a unique DOM prefix to build unique ids in the page.
+      def set_dom_prefix
+        @name ||= unique_name
+        node.dom_prefix = @name
       end
 
       # Unique template_url, ending with dom_id
@@ -259,7 +285,7 @@ module Zafu
         #    k.kind_of?(String) && k =~ /\ANode_\w/
         #  end
         #  @markup.done = false
-        #  @markup.params.merge!(:id=>erb_dom_id)
+        #  @markup.params.merge!(:id=>node.dom_id)
         #  @context[:scope_node] = node if @context[:scope_node]
         #  out expand_with(:node => node)
         #  if @method == 'drop' && !@context[:make_form]
@@ -302,7 +328,7 @@ module Zafu
         #
         #    # RENDER
         #    @markup.done = false
-        #    @markup.params.merge!(:id=>erb_dom_id)
+        #    @markup.params.merge!(:id=>node.dom_id)
         #  end
         #
         #  out expand_with

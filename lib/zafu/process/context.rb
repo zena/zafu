@@ -30,16 +30,24 @@ module Zafu
           else
             out "<% #{node}.each do |#{var}| -%>"
           end
-          @context[:node] = @context[:node].move_to(var, node.klass.first)
+          with_context(:node => node.move_to(var, node.klass.first)) do
             steal_and_eval_html_params_for(@markup, @params)
+            if need_dom_id?
+              @markup.set_id(node.dom_id)
+            end
             out @markup.wrap(expand_with)
-          @context[:node] = @context[:node].up
+          end
           out "<% end -%>"
         end
       end
 
       def helper
         @context[:helper]
+      end
+      
+      # Return true if we need to insert the dom id for this element. This method is overwritten in Ajax.
+      def need_dom_id?
+        false
       end
 
       # Return the node context for a given class (looks up into the hierarchy) or the
