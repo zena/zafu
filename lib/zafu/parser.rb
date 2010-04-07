@@ -10,7 +10,7 @@ module Zafu
 
   class Parser
     TEXT_CALLBACKS    = %w{before_parse after_parse before_wrap wrap after_wrap}
-    PROCESS_CALLBACKS = %w{before_process process_unknown after_process}
+    PROCESS_CALLBACKS = %w{before_process expander process_unknown after_process}
     CALLBACKS         = TEXT_CALLBACKS + PROCESS_CALLBACKS
 
     @@callbacks = {}
@@ -50,7 +50,7 @@ module Zafu
           end
         }
       end
-    end
+    end # class << self
 
     PROCESS_CALLBACKS.each do |clbk|
       eval %Q{
@@ -60,6 +60,15 @@ module Zafu
           end
         end
       }
+    end
+
+    def expander
+      self.class.expander_callbacks.reverse_each do |callback|
+        if res = send(callback)
+          return res
+        end
+      end
+      nil
     end
 
     TEXT_CALLBACKS.each do |clbk|
@@ -182,14 +191,9 @@ module Zafu
 
       before_process
 
-      @pass    = {} # used to pass information to the parent
-      res = nil
+      @pass = {} # used to pass information to the parent
 
-      if respond_to?("r_#{@method}".to_sym)
-        res = do_method("r_#{@method}".to_sym)
-      else
-        res = do_method(:process_unknown)
-      end
+      res = expander || default_expander
 
       res = before_wrap(res)
       res = wrap(res)
@@ -204,6 +208,15 @@ module Zafu
       end
 
       res
+    end
+
+    # Default processing
+    def default_expander
+      if respond_to?("r_#{@method}".to_sym)
+        do_method("r_#{@method}".to_sym)
+      else
+        do_method(:process_unknown)
+      end
     end
 
     def do_method(sym)

@@ -32,9 +32,7 @@ module Zafu
           end
           with_context(:node => node.move_to(var, node.klass.first)) do
             steal_and_eval_html_params_for(@markup, @params)
-            if need_dom_id?
-              @markup.set_id(node.dom_id)
-            end
+            @markup.set_id(node.dom_id) if need_dom_id?
             out @markup.wrap(expand_with)
           end
           out "<% end -%>"
@@ -44,7 +42,7 @@ module Zafu
       def helper
         @context[:helper]
       end
-      
+
       # Return true if we need to insert the dom id for this element. This method is overwritten in Ajax.
       def need_dom_id?
         false
@@ -55,6 +53,16 @@ module Zafu
       def node(klass = nil)
         return @context[:node] if !klass
         @context[:node].get(klass)
+      end
+
+      def base_class
+        if node.will_be?(Node)
+          Node
+        elsif node.will_be?(Version)
+          Version
+        else
+          node.klass
+        end
       end
 
       # Expand with a new node context.
@@ -134,7 +142,7 @@ module Zafu
       # triggered (insertion of contextual variables).
       def open_node_context(finder, cont = {})
         sub_context = node_context_vars(finder).merge(cont)
-        
+
         with_context(sub_context) do
           yield
         end

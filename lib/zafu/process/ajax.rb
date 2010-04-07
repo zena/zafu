@@ -178,14 +178,18 @@ module Zafu
             out "<% if #{new_node} = #{new_node.klass}.new -%>"
           end
 
-          # Expand 'form' block
-          out expand_block( @context[:form],
-            # Why do we need this ?
+          form_block = @context[:form]
+
+          # Expand (inline) 'form' block
+          out expand_block(form_block,
+            # ??
             :in_add    => true,
             # ??
             :no_ignore => ['form'],
             # ??
             :add       => self,
+            # Transform 'each' block into a form
+            :make_form => form_block.method == 'each',
             # Node context = new node
             :node      => new_node
           )
