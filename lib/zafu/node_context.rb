@@ -47,6 +47,7 @@ module Zafu
     # master_class(Creature) would return Animal
     def master_class(after_class)
       klass = self.klass
+      klass = klass.first if klass.kind_of?(Array)
       begin
         up = klass.superclass
         return klass if up == after_class

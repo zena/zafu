@@ -4,6 +4,7 @@ require 'zafu/process/html'
 require 'zafu/process/ruby_less'
 require 'zafu/process/context'
 require 'zafu/process/conditional'
+require 'zafu/process/forms'
 
 module Zafu
   All = [
@@ -13,5 +14,6 @@ module Zafu
     Zafu::Process::Conditional,
     Zafu::Process::RubyLess,
     Zafu::Process::Ajax,
+    Zafu::Process::Forms,
   ]
 end

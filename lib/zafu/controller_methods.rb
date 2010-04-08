@@ -1,7 +1,7 @@
 module Zafu
   module ControllerMethods
     def self.included(base)
-      base.helper_method :zafu_context, :get_template_text, :template_url_for_asset
+      base.helper_method :zafu_context, :get_template_text, :template_url_for_asset, :fquote
       if RAILS_ENV == 'development'
         base.class_eval do
           def render_for_file_with_rebuild(template_path, status = nil, layout = nil, locals = {}) #:nodoc:
@@ -26,6 +26,11 @@ module Zafu
 
     def zafu_context
       @zafu_context ||= {}
+    end
+
+    # Quote for html attributes (field quote). There might be a better rails alternative to this.
+    def fquote(text)
+      text.to_s.gsub("'",'&apos;')
     end
 
     # This method should return the template for a given 'src' and

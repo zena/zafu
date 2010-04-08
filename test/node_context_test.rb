@@ -177,6 +177,10 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return true on will_be with the same class' do
       assert subject.will_be?(Page)
     end
+    
+    should 'return class on master_class' do
+      assert_equal Page, subject.master_class(Object)
+    end
   end
 
   context 'Generating a dom id' do
