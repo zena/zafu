@@ -37,6 +37,9 @@ module Zafu
           end
           out "<% end -%>"
         end
+
+        # We need to return true for Ajax 'make_form'
+        true
       end
 
       def helper

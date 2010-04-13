@@ -185,6 +185,14 @@ module Zafu
       params[key] || dyn_params[key]
     end
 
+    # Duplicate markup and make sure params and dyn_params are duplicated as well.
+    def dup
+      markup = Markup.new(@tag)
+      markup.params = @params.dup
+      markup.dyn_params = @dyn_params.dup
+      markup
+    end
+
     # Wrap the given text with our tag. If 'append' is not empty, append the text
     # after the tag parameters: <li class='foo'[APPEND HERE]>text</li>.
     def wrap(text, *append)

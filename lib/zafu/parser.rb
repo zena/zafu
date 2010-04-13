@@ -65,7 +65,10 @@ module Zafu
     def expander
       self.class.expander_callbacks.reverse_each do |callback|
         if res = send(callback)
-          return res
+          if res.kind_of?(String)
+            @result << res
+          end
+          return @result + @out_post
         end
       end
       nil
@@ -197,6 +200,7 @@ module Zafu
 
       res = before_wrap(res)
       res = wrap(res)
+
       # @text contains unparsed data (empty space)
       res = after_wrap(res) + @text
 
@@ -294,7 +298,7 @@ module Zafu
           included_history  = @options[:included_history] + [absolute_url]
         end
       end
-      res = self.class.new(included_text, :helper => @options[:helper], :base_path => base_path, :included_history => included_history, :part => @params[:part]) # we set :part to avoid loop failure when doing self inclusion
+      res = self.class.new(included_text, :helper => @options[:helper], :base_path => base_path, :included_history => included_history, :part => @params[:part], :parent => self) # we set :part to avoid loop failure when doing self inclusion
 
       if @params[:part]
         if iblock = res.ids[@params[:part]]
@@ -467,8 +471,8 @@ module Zafu
         custom_text = opts.delete(:text)
       end
       text = custom_text || @text
-      opts = @options.merge(opts).merge(:sub=>true, :mode=>mode, :parent => self)
-      new_obj = self.class.new(text,opts)
+      opts = @options.merge(opts).merge(:sub => true, :mode => mode, :parent => self)
+      new_obj = self.class.new(text, opts)
       if new_obj.success?
         @text = new_obj.text unless custom_text
         new_obj.text = ""

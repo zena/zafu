@@ -32,11 +32,11 @@ module Zafu
           #                                                                                                                 assign [] to var
           out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) -%>"
           # The list is not empty or we have enough rights to add new elements.
+          set_dom_prefix
 
           # New node context.
           open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do #, :need_link_id => form_block.need_link_id) do
             # Pagination count and other contextual variables exist here.
-            set_dom_prefix
 
             # INLINE ==========
             # 'r_add' needs the form when rendering. Send with :form.
@@ -45,6 +45,7 @@ module Zafu
                 :in_if              => false,
                 :form               => form_block,
                 :publish_after_save => publish_after_save,
+                # Do not render the form block directly: let [add] do this.
                 :ignore             => ['form'],
                 :klass              => klass
               )
@@ -66,7 +67,7 @@ module Zafu
 
           # 3. Save 'form' template
           cont = {
-            :template_url       => form_url(node),
+            :saved_template     => form_url(node),
             :klass              => klass,
             :make_form          => each_block == form_block,
             :publish_after_save => publish_after_save,
@@ -167,7 +168,7 @@ module Zafu
           out @markup.wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
           # New object to render form
-          new_node = NodeContext.new("#{var}_new", node.klass)
+          new_node = node.move_to("#{var}_new", node.klass)
 
           if new_node.will_be?(Node)
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
@@ -182,10 +183,10 @@ module Zafu
 
           # Expand (inline) 'form' block
           out expand_block(form_block,
+            # Needed in form to be able to return the result
+            :template_url => template_url(node),
             # ??
             :in_add    => true,
-            # ??
-            :no_ignore => ['form'],
             # ??
             :add       => self,
             # Transform 'each' block into a form
@@ -208,6 +209,18 @@ module Zafu
         out "<a href='#' onclick='#{@context[:onclick]}'>#{text_for_link(default)}</a>"
       end
 
+      def r_each
+        if @context[:saved_template]
+          # render to start a saved template
+          options = form_options
+          @markup.set_id(options[:id]) if options[:id]
+          @markup.set_param(:style, options[:style]) if options[:style]
+
+          out @markup.wrap(expand_with)
+        else
+          super
+        end
+      end
 
       # Return true if we need to insert the dom id for this element. This method is overwritten in Ajax.
       def need_dom_id?
@@ -222,7 +235,7 @@ module Zafu
 
       # Unique template_url, ending with dom_id
       def template_url(node)
-        "#{@options[:root]}/#{node.dom_prefix}"
+        "#{root.options[:root][1..-1]}/#{node.dom_prefix}"
       end
 
       def form_url(node)
@@ -259,11 +272,14 @@ module Zafu
           node = cont[:node].as_main(ActiveRecord::Base)
           node.dom_prefix = @name
 
-          cont[:template_url] ||= template_url(node)
+          cont[:template_url] = template_url(node)
+          cont[:node]  = node
+          cont[:block] = block
+          cont[:saved_template] ||= cont[:template_url]
 
-          template = expand_block(block, cont.merge(:node => node, :block => block))
+          template = expand_block(block, cont)
 
-          out helper.save_erb_to_url(template, cont[:template_url])
+          out helper.save_erb_to_url(template, cont[:saved_template])
         end
 
         def need_ajax?(each_block)

@@ -49,9 +49,6 @@ module Zafu
         # Translate dynamic params such as <tt>class='#{visitor.lang}'</tt> in the context
         # of the current parser
         @markup.compile_params(self)
-
-        # [each] is run many times with different roles. Some of these change html_tag_params.
-      #  @markup_bak = @markup.dup
       end
 
       def wrap_html(text)

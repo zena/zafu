@@ -78,12 +78,12 @@ class MarkupTest < Test::Unit::TestCase
       assert_equal new_base, base
       assert_equal markup_params, subject.params
     end
-    
+
     context 'on a link' do
       subject do
         Markup.new('link')
       end
-      
+
       should 'transfer common html params' do
         base = {:rel => 'rel', :type => 'type', :class => 'blue', :name => 'sprout', :id => 'front_cover', :style => 'padding:5px;', :attr => 'title'}
         subject.steal_html_params_from(base)
@@ -330,16 +330,31 @@ class MarkupTest < Test::Unit::TestCase
       end
     end
   end
-  
-  context 'Duplicating a markup and wrapping' do
-    setup do
-      @markup = Markup.new('p')
-      @duplicate = @markup.dup
+
+  context 'Duplicating a markup' do
+    context 'and changing params' do
+      setup do
+        @markup = Markup.new('p')
+        @markup.params[:class] = 'one'
+        @duplicate = @markup.dup
+      end
+
+      should 'not propagate changes to original' do
+        @duplicate.params[:class] = 'two'
+        assert_equal "<p class='one'>one</p>", @markup.wrap('one')
+      end
     end
-    
-    should 'not propagate done to duplicate' do
-      @markup.wrap('')
-      assert_equal '<p>one</p>', @duplicate.wrap('one')
+
+    context 'and wrapping' do
+      setup do
+        @markup = Markup.new('p')
+        @duplicate = @markup.dup
+      end
+
+      should 'not propagate done to duplicate' do
+        @markup.wrap('')
+        assert_equal '<p>one</p>', @duplicate.wrap('one')
+      end
     end
   end
 end
