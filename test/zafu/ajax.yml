@@ -1,3 +1,6 @@
 store_block:
   src: "TODO"
   tem: "..."
+
+use_root_in_template_url:
+  src: "...."

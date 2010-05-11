@@ -20,6 +20,7 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def rubyless_eval
+        puts @params.inspect
         if @method =~ /^[A-Z]/
           return rubyless_class_scope(@method)
         end
@@ -63,7 +64,8 @@ module Zafu
       end
 
       def rubyless_render(method, params)
-        rubyless_expand(::RubyLess.translate(method_with_arguments(method, params), self))
+        code = method_with_arguments(method, params)
+        rubyless_expand ::RubyLess.translate(code, self)
       end
 
       def set_markup_attr(markup, key, value)

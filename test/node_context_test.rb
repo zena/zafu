@@ -52,6 +52,12 @@ class NodeContextTest < Test::Unit::TestCase
       end
     end
 
+    context 'calling form_name' do
+      should 'return underscore name of base class' do
+        assert_equal 'page', subject.form_name
+      end
+    end
+
     context 'with a sub-class' do
       subject do
         NodeContext.new('@node', SubPage)
@@ -69,6 +75,12 @@ class NodeContextTest < Test::Unit::TestCase
         assert !subject.will_be?(String)
       end
 
+      context 'calling form_name' do
+        should 'return underscore name of base class' do
+          assert_equal 'page', subject.form_name
+        end
+      end
+
       context 'calling as_main' do
         should 'build the name from the class' do
           assert_equal '@sub_page', subject.as_main.name
@@ -82,8 +94,27 @@ class NodeContextTest < Test::Unit::TestCase
           subject = NodeContext.new('@node', SubSubPage)
           assert_equal SubPage, subject.as_main(Page).klass
         end
+
+        should 'rebuild name from ancestor when using after_class argument' do
+          subject = NodeContext.new('@node', SubSubPage)
+          assert_equal '@sub_page', subject.as_main(Page).name
+        end
+      end
+
+      should 'return subclass on class_name' do
+        assert_equal 'SubPage', subject.class_name
       end
     end # with a sub-class
+
+    context 'with an anonymoys sub-class' do
+      subject do
+        NodeContext.new('@node', Class.new(Page))
+      end
+
+      should 'return class on class_name' do
+        assert_equal 'Page', subject.class_name
+      end
+    end # with an anonymoys sub-class
   end
 
   context 'In a sub-context' do
@@ -159,7 +190,7 @@ class NodeContextTest < Test::Unit::TestCase
       @grandma = NodeContext.new('@page', Page)
       @mother = @grandma.move_to('@comment', Comment)
     end
-    
+
     subject do
       @mother.move_to('list', [Page])
     end
@@ -173,13 +204,13 @@ class NodeContextTest < Test::Unit::TestCase
     should 'return parent on up with class' do
       assert_equal @grandma, subject.up(Page)
     end
-    
+
     should 'return true on will_be with the same class' do
       assert subject.will_be?(Page)
     end
-    
+
     should 'return class on master_class' do
-      assert_equal Page, subject.master_class(Object)
+      assert_equal Page, subject.master_class(ActiveRecord::Base)
     end
   end
 

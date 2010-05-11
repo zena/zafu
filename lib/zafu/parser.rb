@@ -15,7 +15,7 @@ module Zafu
 
     @@callbacks = {}
     attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent, :errors
-    # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
+    # Method parameters "<r:show attr='node_name'/>" (params contains {'attr' => 'name'}).
     attr_accessor :params
 
     class << self
@@ -92,7 +92,7 @@ module Zafu
        :@context  => @context,
        :@result   => @result,
        :@out_post => @out_post,
-       :@params   => @params,
+       :@params   => @params.dup,
        :@method   => @method,
       }
     end

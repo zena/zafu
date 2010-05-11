@@ -80,7 +80,7 @@ module Zafu
 
     def get(klass)
       if list_context?
-        if self.klass.first.ancestors.include?(klass)
+        if klass <= self.klass.first
           NodeContext.new("#{self.name}.first", self.klass.first)
         elsif @up
           @up.get(klass)
@@ -100,8 +100,24 @@ module Zafu
       klass ? @up.get(klass) : @up
     end
 
+    # Return true if the current klass is an Array.
     def list_context?
       klass.kind_of?(Array)
+    end
+
+    # Return the name of the current class with underscores like 'sub_page'.
+    def underscore
+      class_name.to_s.underscore
+    end
+
+    # Return the class name or the superclass name if the current class is an anonymous class.
+    def class_name
+      (@klass.name.blank? ? @klass.superclass : @klass).name
+    end
+
+    # Return the name to use for input fields
+    def form_name
+      @form_name ||= master_class(ActiveRecord::Base).name.underscore
     end
 
     protected

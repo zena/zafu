@@ -1,7 +1,14 @@
 module Foo
 end
 
-class Page
+unless defined?(ActiveRecord)
+  module ActiveRecord
+    class Base
+    end
+  end
+end
+
+class Page < ActiveRecord::Base
   include RubyLess
   safe_context :root => Page
 end

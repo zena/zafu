@@ -148,7 +148,7 @@ module Zafu
           # Add a descendant between self and blocks. ==> add( add_btn(blocks) )
           blocks = @blocks.dup
           @blocks = []
-          add_btn = make(:void, :method=>'add_btn', :params=>@params.dup, :text=>'')
+          add_btn = make(:void, :method => 'add_btn', :params => @params.dup, :text => '')
           add_btn.blocks = blocks
           remove_instance_variable(:@all_descendants)
         end
@@ -167,16 +167,17 @@ module Zafu
           # Expand 'add' block
           out @markup.wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
-          # New object to render form
-          new_node = node.move_to("#{var}_new", node.klass)
+          # New object to render form.
+          # FIXME: use 'klass' param in r_add or r_form instead of current list content.
+          new_node = node.move_to("#{var}_new", [node.klass].flatten.first)
 
           if new_node.will_be?(Node)
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
 
             # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
-            out "<% if #{new_node} = secure(Node) { Node.new_from_class('#{new_node.klass}') } -%>"
+            out "<% if #{new_node} = secure(Node) { Node.new_from_class('#{new_node.class_name}') } -%>"
           else
-            out "<% if #{new_node} = #{new_node.klass}.new -%>"
+            out "<% if #{new_node} = #{new_node.class_name}.new -%>"
           end
 
           form_block = @context[:form]
@@ -186,13 +187,13 @@ module Zafu
             # Needed in form to be able to return the result
             :template_url => template_url(node),
             # ??
-            :in_add    => true,
+            :in_add       => true,
             # ??
-            :add       => self,
+            :add          => self,
             # Transform 'each' block into a form
-            :make_form => form_block.method == 'each',
+            :make_form    => form_block.method == 'each',
             # Node context = new node
-            :node      => new_node
+            :node         => new_node
           )
           out "<% end -%>"
         else
@@ -235,7 +236,7 @@ module Zafu
 
       # Unique template_url, ending with dom_id
       def template_url(node)
-        "#{root.options[:root][1..-1]}/#{node.dom_prefix}"
+        "#{root.options[:root]}/#{node.dom_prefix}"
       end
 
       def form_url(node)

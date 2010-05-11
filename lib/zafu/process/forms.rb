@@ -11,29 +11,48 @@ module Zafu
         @markup.set_id(options[:id]) if options[:id]
         @markup.set_param(:style, options[:style]) if options[:style]
 
-        form_tag(options) do |opts|
-          # Render error messages tag
-          form_error_messages(opts[:form_helper])
+        if descendant('form_tag')
+          # We have a specific place to insert our form
+          out expand_with(:form_options => options)
+        else
+          r_form_tag(options)
+        end
+      end
 
-          # Render hidden fields
-          hidden_fields = form_hidden_fields(options)
-          out "<div class='hidden'>"
-          hidden_fields.each do |k,v|
-            if v.kind_of?(String)
-              v = "'#{v}'" unless v.kind_of?(String) && ['"', "'"].include?(v[0..0])
-              out "<input type='hidden' name='#{k}' value=#{v}/>"
-            else
-              # We use ['ffff'] to indicate that the content is already escaped and ready for ERB.
-              out v.first
-            end
+      def r_form_tag(options = context[:form_options])
+        if options.blank?
+          # <form> not in <r:form>, just render all
+          markup = Zafu::Markup.new('form')
+          @params.each do |k, v|
+            markup.set_param(k, v)
           end
-          out '</div>'
+          out markup.wrap(expand_with)
+        else
+          # <form> inside <r:form>
+          form_tag(options) do |opts|
+            # Render error messages tag
+            form_error_messages(opts[:form_helper])
 
-          # Render form elements
-          out expand_with(opts)
+            # Render hidden fields
+            hidden_fields = form_hidden_fields(options)
+            out "<div class='hidden'>"
+            hidden_fields.each do |k,v|
+              if v.kind_of?(String)
+                v = "'#{v}'" unless v.kind_of?(String) && ['"', "'"].include?(v[0..0])
+                out "<input type='hidden' name='#{k}' value=#{v}/>"
+              else
+                # We use ['ffff'] to indicate that the content is already escaped and ready for ERB.
+                out v.first
+              end
+            end
+            out '</div>'
 
-          @blocks = opts[:blocks_bak] if opts[:blocks_bak]
-          true
+            # Render form elements
+            out expand_with(opts)
+
+            # What is this ?
+            #@blocks = opts[:blocks_bak] if opts[:blocks_bak]
+          end
         end
       end
 
@@ -81,28 +100,19 @@ module Zafu
         def form_tag(options)
           opts = options.dup
 
-          if descendant('form_tag')
-            # We have a specific place to insert the <form> tag, let expand_with insert it later.
-            if !descendant('cancel') && !descendant('edit')
-              # No place for cancel tag, insert it with <form>
-              opts[:form_tag] = opts.delete(:form_cancel) + opts[:form_tag]
-            end
+          if descendant('cancel') || descendant('edit')
+            # Pass 'form_cancel' content to expand_with (already in options).
           else
-            # No specific place for the <form> tag.
-            if descendant('cancel') || descendant('edit')
-              # Pass 'form_cancel' content to expand_with (already in options).
-            else
-              # Insert cancel before form
-              out opts.delete(:form_cancel).to_s + opts.delete(:form_tag)
-            end
+            # Insert cancel before form
+            out opts.delete(:form_cancel).to_s
           end
 
-          opts[:in_form] = true
-
-          yield(opts)
-
-          # This is to close the 'form_for' block.
-          out "<% end -%>" if opts[:form_helper]
+          # form_for ... do |f|
+          out opts.delete(:form_tag)
+            # f.xxx
+            yield(opts.merge(:in_form => true))
+          # close form
+          out opts[:form_helper] ? "<% end -%>" : '</form>'
         end
 
         def form_error_messages(f)
