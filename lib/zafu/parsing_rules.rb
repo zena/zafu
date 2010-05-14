@@ -76,7 +76,7 @@ module Zafu
         @markup.steal_html_params_from(@params)
       end
 
-      if @method == 'include'
+      if @method == 'include' && @params[:template]
         include_template
       elsif mode == :tag && !sub
         scan_tag

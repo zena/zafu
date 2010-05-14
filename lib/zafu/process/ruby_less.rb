@@ -7,6 +7,14 @@ module Zafu
 
       def self.included(base)
         base.process_unknown :rubyless_eval
+
+        base.class_eval do
+          def do_method(sym)
+            super
+          rescue RubyLess::Error => err
+            self.class.parser_error(err.message, @method)
+          end
+        end
       end
 
       # Actual method resolution. The lookup first starts in the current helper. If nothing is found there, it
@@ -20,7 +28,6 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def rubyless_eval
-        puts @params.inspect
         if @method =~ /^[A-Z]/
           return rubyless_class_scope(@method)
         end
@@ -64,8 +71,13 @@ module Zafu
       end
 
       def rubyless_render(method, params)
+        # We need to set this here because we cannot pass options to RubyLess or get them back
+        # when we evaluate the method to see if we can use blocks as arguments.
+        @rendering_block_owner = true
         code = method_with_arguments(method, params)
         rubyless_expand ::RubyLess.translate(code, self)
+      ensure
+        @rendering_block_owner = false
       end
 
       def set_markup_attr(markup, key, value)
@@ -87,9 +99,13 @@ module Zafu
       end
 
       private
+        # block_owner should be set to true when we are resolving <r:xxx>...</r:xxx> or <div do='xxx'>...</div>
         def get_method_type(signature, added_options = false)
           if type = node_context_from_signature(signature)
             # Resolve self, @page, @node
+            type
+          elsif type = get_var_from_signature(signature)
+            # Resolved stored set_xxx='something' in context.
             type
           elsif type = safe_method_from(helper, signature)
             # Resolve template helper methods
@@ -98,9 +114,9 @@ module Zafu
             # Resolve by looking at the included helpers
             type
           elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
-            # Resolve node context methods (xxx.foo, xxx.bar)
+            # Resolve node context methods: xxx.foo, xxx.bar
             type.merge(:method => "#{node.name}.#{type[:method]}")
-          elsif @blocks.first.kind_of?(String) && !added_options
+          elsif @rendering_block_owner && @blocks.first.kind_of?(String) && !added_options
             # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")
             signature_with_block = signature.dup
             signature_with_block << String
@@ -206,6 +222,16 @@ module Zafu
             return nil
           end
           {:class => context.klass, :method => context.name}
+        end
+
+        # Find stored variables back. Stored elements are set with set_xxx='something to eval'.
+        def get_var_from_signature(signature)
+          return nil unless signature.size == 1
+          if var = get_context_var('set_var', signature.first)
+            {:class => var.klass, :method => var}
+          else
+            nil
+          end
         end
 
         def safe_method_from(context, signature)

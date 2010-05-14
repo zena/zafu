@@ -58,29 +58,21 @@ module Zafu
         @context[:node].get(klass)
       end
 
-      def base_class
-        if node.will_be?(Node)
-          Node
-        elsif node.will_be?(Version)
-          Version
-        else
-          node.klass
-        end
+      # Store some contextual value / variable inside a named group. This should be
+      # used to avoid key clashes between different types of elements to store.
+      def set_context_var(group, key, obj)
+        @context["#{group}::#{key}"] = obj
       end
 
-      # Expand with a new node context.
+      # Retrieve a value from a given contextual group. The value must have been
+      # previously set with 'set_context_var' somewhere in the hierarchy.
+      def get_context_var(group, key)
+        @context["#{group}::#{key}"]
+      end
+
+      # Expand blocks in a new context.
+      # This method is partly overwriten in Ajax
       def expand_with_finder(finder)
-        klass = finder[:class]
-        if klass.kind_of?(Array)
-          do_list(finder)
-        else
-          do_var(finder)
-        end
-      end
-
-      # Expand blocks in a new list context.
-      # This method is overwriten in Ajax
-      def do_list(finder)
         if finder[:nil]
           out "<% if #{var} = #{finder[:method]} -%>"
           open_node_context(finder, :node => node.move_to(var, finder[:class])) do
@@ -92,14 +84,6 @@ module Zafu
           open_node_context(finder, :node => node.move_to(var, finder[:class])) do
             out @markup.wrap(expand_with)
           end
-        end
-      end
-
-      # Expand blocks in a new var context.
-      def do_var(finder)
-        out "<% #{var} = #{finder[:method]} -%>"
-        open_node_context(finder, :node => node.move_to(var, finder[:class])) do
-          out @markup.wrap(expand_with)
         end
       end
 

@@ -7,8 +7,8 @@ module Zafu
 
 
       # This method process a list and handles building the necessary templates for ajax 'add'.
-
-      def do_list(finder)
+      def expand_with_finder(finder)
+        return super unless finder[:class].kind_of?(Array)
 
         # Get the block responsible for rendering each elements in the list
         each_block = descendant('each')

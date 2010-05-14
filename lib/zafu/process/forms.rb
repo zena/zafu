@@ -77,10 +77,10 @@ module Zafu
           end
 
           if @context[:template_url]
-            opts[:form_tag]    = "<% remote_form_for(#{node}) do |f| %>"
+            opts[:form_tag]    = "<% remote_form_for(:#{node.form_name}, #{node}, :html => {:id => \"#{node.dom_prefix}_form_t\"}) do |f| %>"
             opts[:form_helper] = 'f'
           else
-            opts[:form_tag]    = "<% form_for(#{node}) do |f| %>"
+            opts[:form_tag]    = "<% form_for(:#{node.form_name}, #{node}, :html => {:id => \"#{node.dom_prefix}_form_t\"}) do |f| %>"
             opts[:form_helper] = 'f'
           end
 

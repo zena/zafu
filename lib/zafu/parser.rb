@@ -15,7 +15,7 @@ module Zafu
 
     @@callbacks = {}
     attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent, :errors
-    # Method parameters "<r:show attr='node_name'/>" (params contains {'attr' => 'name'}).
+    # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
     attr_accessor :params
 
     class << self
@@ -228,7 +228,7 @@ module Zafu
       if res.kind_of?(String)
         @result << res
       elsif @result.blank?
-        @result << @method
+        @result << (@errors.blank? ? @method : show_errors)
       end
       @result + @out_post
     end
