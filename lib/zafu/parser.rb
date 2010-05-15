@@ -89,12 +89,18 @@ module Zafu
     # used to store state to make 'process' reintrant...
     def save_state
       {
-       :@context  => @context,
        :@result   => @result,
        :@out_post => @out_post,
        :@params   => @params.dup,
        :@method   => @method,
       }
+    end
+
+    # Restore state from a hash
+    def restore_state(saved)
+      saved.each do |key, value|
+        instance_variable_set(key, value)
+      end
     end
 
     def parser_error(message, method = @method)
@@ -181,7 +187,7 @@ module Zafu
     end
 
     def process(context={})
-      saved = save_state
+      @saved = save_state
 
       if @name
         # we pass the name as 'context' in the children tags
@@ -194,7 +200,7 @@ module Zafu
 
       before_process
 
-      @pass = {} # used to pass information to the parent
+      @pass = {} # used to pass information to the parent (is this used ?)
 
       res = expander || default_expander
 
@@ -207,9 +213,7 @@ module Zafu
       after_process
 
       # restore state
-      saved.each do |key, value|
-        instance_variable_set(key, value)
-      end
+      restore_state(@saved)
 
       res
     end

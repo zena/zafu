@@ -32,6 +32,12 @@ module Zafu
         keys.delete(k)
         super
       end
+
+      def dup
+        copy = super
+        copy.instance_variable_set(:@keys, keys.dup)
+        copy
+      end
     end
   end
 end

@@ -39,7 +39,7 @@ module Zafu
           rubyless_render(@method, @params)
         end
       rescue ::RubyLess::NoMethodError => err
-        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span>")
+        parser_error("#{err.error_message}<span class='type'>#{err.method_with_arguments}</span> (#{node.class_name} context)")
       rescue ::RubyLess::Error => err
         parser_error(err.message)
       end

@@ -112,7 +112,12 @@ module Zafu
 
     # Return the class name or the superclass name if the current class is an anonymous class.
     def class_name
-      (@klass.name.blank? ? @klass.superclass : @klass).name
+      if list_context?
+        klass = @klass.first
+        "[#{(klass.name.blank? ? klass.superclass : klass).name}]"
+      else
+        (@klass.name.blank? ? @klass.superclass : @klass).name
+      end
     end
 
     # Return the name to use for input fields

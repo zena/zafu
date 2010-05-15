@@ -277,6 +277,11 @@ module Zafu
           cont[:node]  = node
           cont[:block] = block
           cont[:saved_template] ||= cont[:template_url]
+          @context.each do |k, v|
+            if k.kind_of?(String)
+              cont[k] = nil
+            end
+          end
 
           template = expand_block(block, cont)
 
