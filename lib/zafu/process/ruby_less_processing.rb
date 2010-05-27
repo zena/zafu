@@ -2,8 +2,8 @@ require 'rubyless'
 
 module Zafu
   module Process
-    module RubyLess
-      include ::RubyLess
+    module RubyLessProcessing
+      include RubyLess
 
       def self.included(base)
         base.process_unknown :rubyless_eval
@@ -28,7 +28,7 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def rubyless_eval
-        if @method =~ /^[A-Z]/
+        if @method =~ /^[A-Z]\w+$/
           return rubyless_class_scope(@method)
         end
 
@@ -38,9 +38,9 @@ module Zafu
         else
           rubyless_render(@method, @params)
         end
-      rescue ::RubyLess::NoMethodError => err
-        parser_error("#{err.error_message}<span class='type'>#{err.method_with_arguments}</span> (#{node.class_name} context)")
-      rescue ::RubyLess::Error => err
+      rescue RubyLess::NoMethodError => err
+        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> (#{node.class_name} context)")
+      rescue RubyLess::Error => err
         parser_error(err.message)
       end
 
@@ -54,7 +54,7 @@ module Zafu
 
         out "<div class='rubyless-m'><h3>Documentation for <b>#{klass}</b></h3>"
         out "<ul>"
-        ::RubyLess::SafeClass.safe_methods_for(klass).each do |signature, opts|
+        RubyLess::SafeClass.safe_methods_for(klass).each do |signature, opts|
           opts = opts.dup
           opts.delete(:method)
           if opts.keys == [:class]
@@ -75,13 +75,13 @@ module Zafu
         # when we evaluate the method to see if we can use blocks as arguments.
         @rendering_block_owner = true
         code = method_with_arguments(method, params)
-        rubyless_expand ::RubyLess.translate(code, self)
+        rubyless_expand RubyLess.translate(code, self)
       ensure
         @rendering_block_owner = false
       end
 
       def set_markup_attr(markup, key, value)
-        value = value.kind_of?(::RubyLess::TypedString) ? value : ::RubyLess.translate_string(value, self)
+        value = value.kind_of?(RubyLess::TypedString) ? value : RubyLess.translate_string(value, self)
         if value.literal
           markup.set_param(key, value.literal)
         else
@@ -90,7 +90,7 @@ module Zafu
       end
 
       def append_markup_attr(markup, key, value)
-        value = ::RubyLess.translate_string(value, self)
+        value = RubyLess.translate_string(value, self)
         if value.literal
           markup.append_param(key, value.literal)
         else
@@ -116,12 +116,14 @@ module Zafu
           elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
             # Resolve node context methods: xxx.foo, xxx.bar
             type.merge(:method => "#{node.name}.#{type[:method]}")
+          elsif node && node.klass.kind_of?(Array) && type = safe_method_from(node.klass.first, signature)
+            type.merge(:method => "#{node.name}.first.#{type[:method]}")
           elsif @rendering_block_owner && @blocks.first.kind_of?(String) && !added_options
             # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")
             signature_with_block = signature.dup
             signature_with_block << String
             if type = get_method_type(signature_with_block, true)
-              type.merge(:prepend_args => ::RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first))
+              type.merge(:prepend_args => RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first))
             else
               nil
             end
@@ -130,7 +132,7 @@ module Zafu
             signature_with_node = signature.dup
             signature_with_node.insert(1, node.klass)
             if type = get_method_type(signature_with_node, added_options = true)
-              type.merge(:prepend_args => ::RubyLess::TypedString.new(node.name, :class => node.klass))
+              type.merge(:prepend_args => RubyLess::TypedString.new(node.name, :class => node.klass))
             else
               nil
             end
@@ -189,9 +191,7 @@ module Zafu
           # capital letter ==> class conditional
           klass = Module.const_get(class_name)
           if klass.ancestors.include?(node.klass)
-            out "<% if #{node}.kind_of?(#{klass}) %>"
-            out expand_with(:in_if => true)
-            out "<% end -%>"
+            expand_if("#{node}.kind_of?(#{klass})")
           else
             # render nothing: incompatible classes
             ''
@@ -228,7 +228,7 @@ module Zafu
         def get_var_from_signature(signature)
           return nil unless signature.size == 1
           if var = get_context_var('set_var', signature.first)
-            {:class => var.klass, :method => var}
+            {:method => var, :class => var.klass, :nil => var.could_be_nil?}
           else
             nil
           end
@@ -239,10 +239,10 @@ module Zafu
           if context.respond_to?(:safe_method_type)
             context.safe_method_type(signature)
           else
-            ::RubyLess::SafeClass.safe_method_type_for(context, signature)
+            RubyLess::SafeClass.safe_method_type_for(context, signature)
           end
         end
 
-    end # RubyLess
+    end # RubyLessProcessing
   end # Process
 end # Zafu

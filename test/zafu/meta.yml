@@ -1,0 +1,8 @@
+some_template:
+  src: "<div id='a'>a</div><div id='b'>b</div>"
+  tem: "<div id='a'>a</div><div id='b'>b</div>"
+
+include_with_part:
+  # part 'a' is moved around
+  src: "<r:include template='/some/template'><r:with part='a'/><r:with part='b'>new b:<r:include template='/some/template' part='a'/></r:with></r:include>"
+  tem: "<div id='b'>new b:<div id='a'>a</div></div>"

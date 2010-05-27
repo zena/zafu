@@ -2,7 +2,7 @@ require 'zafu/template'
 
 module Zafu
   module TestHelper
-    include ::RubyLess::SafeClass
+    include RubyLess::SafeClass
 
     def zafu_erb(source, src_helper = self, compiler = Zafu::Compiler)
       Zafu::Template.new(source, src_helper, compiler).to_erb(compilation_context)

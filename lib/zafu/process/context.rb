@@ -11,7 +11,7 @@ module Zafu
             out "<% #{node}.each_with_index do |#{var},#{var}_index| -%>"
 
             if join = @params[:join]
-              join = ::RubyLess.translate_string(join, self)
+              join = RubyLess.translate_string(join, self)
               #if join_clause = @params[:join_if]
               #  set_stored(Node, 'prev', "#{var}_prev")
               #  cond = get_test_condition(var, :test=>join_clause)
@@ -22,7 +22,7 @@ module Zafu
             end
 
             if alt_class = @params[:alt_class]
-              alt_class = ::RubyLess.translate_string(alt_class, self)
+              alt_class = RubyLess.translate_string(alt_class, self)
               alt_test = @params[:alt_reverse] == 'true' ? "(#{var}_max_index - #{var}_index) % 2 != 0" : "#{var}_index % 2 != 0"
               @markup.append_dyn_param(:class, "<%= #{alt_test} ? #{alt_class} : '' %>")
               @markup.tag ||= 'div'
@@ -30,12 +30,15 @@ module Zafu
           else
             out "<% #{node}.each do |#{var}| -%>"
           end
+
           with_context(:node => node.move_to(var, node.klass.first)) do
             steal_and_eval_html_params_for(@markup, @params)
             @markup.set_id(node.dom_id) if need_dom_id?
             out @markup.wrap(expand_with)
           end
           out "<% end -%>"
+        else
+          out expand_with
         end
 
         # We need to return true for Ajax 'make_form'
@@ -74,16 +77,16 @@ module Zafu
       # This method is partly overwriten in Ajax
       def expand_with_finder(finder)
         if finder[:nil]
-          out "<% if #{var} = #{finder[:method]} -%>"
-          open_node_context(finder, :node => node.move_to(var, finder[:class])) do
-            out @markup.wrap(expand_with(:in_if => true))
+          open_node_context(finder) do
+            expand_if("#{var} = #{finder[:method]}", node.move_to(var, finder[:class]))
           end
-          out "<% end -%>"
         else
-          out "<% #{var} = #{finder[:method]} -%>"
+          res = ''
+          res << "<% #{var} = #{finder[:method]} -%>"
           open_node_context(finder, :node => node.move_to(var, finder[:class])) do
-            out @markup.wrap(expand_with)
+            res << @markup.wrap(expand_with)
           end
+          res
         end
       end
 

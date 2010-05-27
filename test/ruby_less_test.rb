@@ -3,7 +3,7 @@ require 'test_helper'
 class ZafuRubyLessTest < Test::Unit::TestCase
   include RubyLess
   def self.process_unknown(callback); end;
-  include Zafu::Process::RubyLess
+  include Zafu::Process::RubyLessProcessing
   def helper; self.class; end
   safe_method :one => {:class => String, :method => "main_one"}
 
@@ -19,7 +19,7 @@ class ZafuRubyLessTest < Test::Unit::TestCase
         assert_equal '<p name=\'this is a string\'>foo</p>', @markup.wrap('foo')
       end
     end
-    
+
     context 'parsing an attribute with dynamic content' do
       should 'use RubyLess to translate content' do
         set_markup_attr(@markup, :name, 'this #{one}')
@@ -27,8 +27,8 @@ class ZafuRubyLessTest < Test::Unit::TestCase
       end
 
       context 'with ruby errors' do
-        should 'raise a RubyLess::Error' do
-          assert_raises(::RubyLess::Error) do
+        should 'raise a RubyLess::SyntaxError' do
+          assert_raises(RubyLess::SyntaxError) do
             set_markup_attr(@markup, :name, 'this #{one}}')
           end
         end
@@ -36,8 +36,8 @@ class ZafuRubyLessTest < Test::Unit::TestCase
         should 'produce an error message with the original attribute' do
           begin
             set_markup_attr(@markup, :name, 'this #{one}}')
-          rescue ::RubyLess::Error => err
-            assert_equal 'Error parsing string "this #{one}}": parse error on value "}" (tRCURLY)', err.message
+          rescue RubyLess::Error => err
+            assert_match %r{parse error on value "\}" \(tRCURLY\)}, err.message
           end
         end
       end

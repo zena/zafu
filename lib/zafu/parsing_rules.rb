@@ -69,7 +69,7 @@ module Zafu
       end
 
       # set name used for include/replace from html_tag if not allready set by superclass
-      @name = @options[:name] || @params[:name] || @params[:id] || @markup.params[:id]
+      @name = extract_name
 
       if !@markup.tag && (@markup.tag = @params.delete(:tag))
         # Extract html tag parameters from @params
@@ -83,6 +83,12 @@ module Zafu
       elsif !sub
         enter(mode)
       end
+    end
+
+    def extract_name
+      super ||
+      (%w{input select textarea}.include?(@method) ? nil : @params[:name]) ||
+      @markup.params[:id]
     end
 
     def remove_erb(text)

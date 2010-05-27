@@ -68,7 +68,7 @@ module Zafu
           if res =~ /\A\[(\w+)(.*)\/\]\Z/m
             res = "[#{$1}#{$2}]<#{@markup.tag}/>[/#{$1}]"
           elsif res =~ /\A\[([^\]]+)\](.*)\[\/(\w+)\]\Z/m
-            res = "[#{$1}]#{render_html_tag($2)}[/#{$3}]"
+            res = "[#{$1}]#{@markup.wrap($2)}[/#{$3}]"
           end
         end
         res
@@ -78,8 +78,6 @@ module Zafu
         @markup.done = true
         ''
       end
-
-      alias r_ r_ignore
 
       def r_rename_asset
         return expand_with unless @markup.tag

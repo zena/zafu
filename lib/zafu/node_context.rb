@@ -111,6 +111,7 @@ module Zafu
     end
 
     # Return the class name or the superclass name if the current class is an anonymous class.
+    # FIXME: just use klass.to_s (so that we can do clever things with 'to_s')
     def class_name
       if list_context?
         klass = @klass.first

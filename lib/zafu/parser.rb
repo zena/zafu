@@ -68,7 +68,7 @@ module Zafu
           if res.kind_of?(String)
             @result << res
           end
-          return @result + @out_post
+          return @result
         end
       end
       nil
@@ -89,6 +89,7 @@ module Zafu
     # used to store state to make 'process' reintrant...
     def save_state
       {
+       :@context  => @context, # <== we need this when rendering twice the same part
        :@result   => @result,
        :@out_post => @out_post,
        :@params   => @params.dup,
@@ -145,7 +146,7 @@ module Zafu
       start(mode)
 
       # set name
-      @name    ||= @options[:name] || @params[:id]
+      @name ||= extract_name
       @options[:ids][@name] = self if @name
 
       unless opts[:sub]
@@ -158,6 +159,10 @@ module Zafu
         end
       end
       @ok
+    end
+
+    def extract_name
+      @options[:name] || @params[:id]
     end
 
     def to_erb(context)
@@ -187,6 +192,8 @@ module Zafu
     end
 
     def process(context={})
+      return '' if @method == 'ignore' || @method.blank?
+
       @saved = save_state
 
       if @name
@@ -205,7 +212,7 @@ module Zafu
       res = expander || default_expander
 
       res = before_wrap(res)
-      res = wrap(res)
+      res = wrap(res + @out_post)
 
       # @text contains unparsed data (empty space)
       res = after_wrap(res) + @text
@@ -234,14 +241,11 @@ module Zafu
       elsif @result.blank?
         @result << (@errors.blank? ? @method : show_errors)
       end
-      @result + @out_post
+      @result
     end
 
     def r_void
       expand_with
-    end
-
-    def r_ignore
     end
 
     alias to_s r_void
@@ -278,6 +282,10 @@ module Zafu
       expand_with(hash)
     end
 
+    def r_ignore
+      ''
+    end
+
     def include_template
       return parser_error("missing 'template' attribute", 'include') unless @params[:template]
       if @options[:part] && @options[:part] == @params[:part]
@@ -293,7 +301,7 @@ module Zafu
 
       included_text, absolute_url, base_path = self.class.get_template_text(@params[:template], @options[:helper], @options[:base_path])
 
-      if absolute_url
+      if included_text
         absolute_url += "::#{@params[:part].gsub('/','_')}" if @params[:part]
         absolute_url += "??#{@options[:part].gsub('/','_')}" if @options[:part]
         if @options[:included_history].include?(absolute_url)
@@ -301,7 +309,10 @@ module Zafu
         else
           included_history  = @options[:included_history] + [absolute_url]
         end
+      else
+        return "<span class='parser_error'>[include] template '#{@params[:template]}' not found</span>"
       end
+
       res = self.class.new(included_text, :helper => @options[:helper], :base_path => base_path, :included_history => included_history, :part => @params[:part], :parent => self) # we set :part to avoid loop failure when doing self inclusion
 
       if @params[:part]
@@ -320,7 +331,6 @@ module Zafu
       enter(:void) # normal scan on content
       # replace 'with'
 
-      not_found = []
       @blocks.each do |b|
         next if b.kind_of?(String) || b.method != 'with'
         if target = res.ids[b.params[:part]]
@@ -333,10 +343,10 @@ module Zafu
           end
         else
           # part not found
-          not_found << parser_error("'#{b.params[:part]}' not found in template '#{@params[:template]}'", 'with')
+          parser_error("'#{b.params[:part]}' not found in template '#{@params[:template]}'", 'with')
         end
       end
-      @blocks = included_blocks + not_found
+      @blocks = included_blocks
     end
 
     # Return a hash of all descendants. Find a specific descendant with descendant['form'] for example.

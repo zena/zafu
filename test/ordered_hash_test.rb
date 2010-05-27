@@ -26,6 +26,24 @@ class OrderedHashTest < Test::Unit::TestCase
       @hash.delete(:c)
       assert_equal [:a, :b], @hash.keys
     end
+    
+    context 'running through keys' do
+      should 'allow key alteration' do
+        @hash.keys.each do |k|
+          assert k != :d
+          @hash[:d] = 'x'
+        end
+      end
+    end
+    
+    context 'running each' do
+      should 'allow key alteration' do
+        @hash.each do |k, v|
+          assert k != :d
+          @hash[:d] = 'x'
+        end
+      end
+    end
 
     context 'with a duplicate' do
       setup do

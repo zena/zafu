@@ -154,21 +154,23 @@ module Zafu
       end
     end
 
-    def prepend_dyn_param(key, value)
+    def prepend_dyn_param(key, value, conditional = false)
+      spacer = conditional ? '' : ' '
       if prev_value = @params.delete(key)
-        @dyn_params[key] = "#{value} #{prev_value}"
+        @dyn_params[key] = "#{value}#{spacer}#{prev_value}"
       elsif prev_value = @dyn_params[key]
-        @dyn_params[key] = "#{value} #{prev_value}"
+        @dyn_params[key] = "#{value}#{spacer}#{prev_value}"
       else
         @dyn_params[key] = value
       end
     end
 
-    def append_dyn_param(key, value)
+    def append_dyn_param(key, value, conditional = false)
+      spacer = conditional ? '' : ' '
       if prev_value = @params.delete(key)
-        @dyn_params[key] = "#{prev_value} #{value}"
+        @dyn_params[key] = "#{prev_value}#{spacer}#{value}"
       elsif prev_value = @dyn_params[key]
-        @dyn_params[key] = "#{prev_value} #{value}"
+        @dyn_params[key] = "#{prev_value}#{spacer}#{value}"
       else
         @dyn_params[key] = value
       end
