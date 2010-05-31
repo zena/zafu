@@ -56,13 +56,25 @@ module Zafu
     end
 
     # Generate a unique DOM id for this element based on dom_scopes defined in parent contexts.
-    def dom_id
-      @dom_id ||= begin
-        if @up
-          [dom_prefix] + @up.dom_scopes + [make_scope_id]
+    def dom_id(opts = {})
+      options = {:list => true, :erb => true}.merge(opts)
+      if options[:erb]
+        dom = dom_id(opts.merge(:erb => false))
+        if dom =~ /^#\{([^\{]+)\}$/
+          "<%= #{$1} %>"
+        elsif dom =~ /#\{/
+          "<%= %Q{#{dom}} %>"
         else
-          [dom_prefix] + [make_scope_id]
-        end.compact.uniq.join('_')
+          dom
+        end
+      else
+        @dom_id ||= begin
+          if @up
+            [dom_prefix] + @up.dom_scopes + (options[:list] ? [make_scope_id] : [])
+          else
+            [dom_prefix] + (options[:list] ? [make_scope_id] : [])
+          end.compact.uniq.join('_')
+        end
       end
     end
 
@@ -134,7 +146,7 @@ module Zafu
 
     private
       def make_scope_id
-        "<%= #{@name}.zip %>"
+        "\#{#{@name}.zip}"
       end
   end
 end

@@ -32,9 +32,15 @@ module Zafu
           @markup.tag ||= markup.tag
           @markup.steal_html_params_from(@params)
           markup.params.each do |k, v|
-            next if @markup.param[k]
+            next if @markup.params[k]
             @markup.set_param(k, v)
           end
+
+          markup.dyn_params.each do |k, v|
+            next if @markup.params[k] || @markup.dyn_params[k]
+            @markup.set_dyn_param(k, v)
+          end
+
           out "<% elsif #{cond} -%>#{@markup.wrap(res)}" # do not propagate
         else
           @markup.done = true # never wrap else/elsif clause
@@ -43,11 +49,11 @@ module Zafu
       end
 
       # Expand blocks with conditional enabled (else, elsif, etc).
-      def expand_if(condition, new_node_context = self.node)
+      def expand_if(condition, new_node_context = self.node, alt_markup = @markup)
         res = ""
         res << "<% if #{condition} -%>"
         res << @markup.wrap(expand_with(:node => new_node_context))
-        res << expand_with(:in_if => true, :only => %w{else elsif when}, :markup => @markup)
+        res << expand_with(:in_if => true, :only => %w{else elsif when}, :markup => alt_markup)
         res << "<% end -%>"
         res
       end

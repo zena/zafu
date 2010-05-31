@@ -67,7 +67,7 @@ module Zafu
 
           # 3. Save 'form' template
           cont = {
-            :saved_template     => form_url(node),
+            :saved_template     => form_url(node.dom_prefix),
             :klass              => klass,
             :make_form          => each_block == form_block,
             :publish_after_save => publish_after_save,
@@ -119,8 +119,9 @@ module Zafu
 
         if @context[:block] == self
           # Storing template (called from within store_block)
-          # Set id with the template's node context (<%= @node.zip %>)
-          @markup.set_id(node.dom_id)
+          # Set id with the template's node context (<%= @node.zip %>). 'false' means we are not
+          # in a list.
+          @markup.set_id(node.dom_id(:list => false))
           expand_with
         else
           # 1. store template
@@ -128,8 +129,9 @@ module Zafu
           store_block(self)
 
           # 2. render
-          # Set id with the current node context (<%= var1.zip %>)
-          @markup.set_id(node.dom_id)
+          # Set id with the current node context (<%= var1.zip %>). 'false' means we are not
+          # in a list.
+          @markup.set_id(node.dom_id(:list => false))
           out expand_with
         end
       end
@@ -185,10 +187,10 @@ module Zafu
           # Expand (inline) 'form' block
           out expand_block(form_block,
             # Needed in form to be able to return the result
-            :template_url => template_url(node),
+            :template_url => template_url(node.dom_prefix),
             # ??
             :in_add       => true,
-            # ??
+            # Used to get parameters like 'publish' or 'klass'
             :add          => self,
             # Transform 'each' block into a form
             :make_form    => form_block.method == 'each',
@@ -235,12 +237,12 @@ module Zafu
       end
 
       # Unique template_url, ending with dom_id
-      def template_url(node)
-        "#{root.options[:root]}/#{node.dom_prefix}"
+      def template_url(dom_prefix = node.dom_prefix)
+        "#{root.options[:root]}/#{dom_prefix}"
       end
 
-      def form_url(node)
-        template_url(node) + '_form'
+      def form_url(dom_prefix = node.dom_prefix)
+        template_url(dom_prefix) + '_form'
       end
 
       # Return a different name on each call
@@ -263,9 +265,17 @@ module Zafu
         end
       end
 
-
-
       private
+
+        # Find a block to update on the page
+        def find_target(name)
+          root.descendants('block').each do |block|
+            return block if block.name == name
+          end
+          out parser_error("could not find a block named '#{name}'")
+          nil
+        end
+
         def store_block(block, cont = {})
           cont = @context.merge(cont)
 
@@ -273,7 +283,7 @@ module Zafu
           node = cont[:node].as_main(ActiveRecord::Base)
           node.dom_prefix = @name
 
-          cont[:template_url] = template_url(node)
+          cont[:template_url] = template_url(node.dom_prefix)
           cont[:node]  = node
           cont[:block] = block
           cont[:saved_template] ||= cont[:template_url]

@@ -98,6 +98,23 @@ module Zafu
         end
       end
 
+      def get_attribute_or_eval(use_string_block = true)
+        if attribute = @params[:attr] || @params[:date]
+          code = "this.#{attribute}"
+        elsif code = @params[:eval] || @params[:test]
+        elsif text = @params[:text]
+          code = "%Q{#{text}}"
+        elsif use_string_block && @blocks.size == 1 && @blocks.first.kind_of?(String)
+          return RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first)
+        else
+          return parser_error("Missing attribute/eval parameter")
+        end
+
+        RubyLess.translate(code, self)
+      rescue RubyLess::Error => err
+        parser_error(err.message, code)
+      end
+
       private
         # block_owner should be set to true when we are resolving <r:xxx>...</r:xxx> or <div do='xxx'>...</div>
         def get_method_type(signature, added_options = false)
@@ -213,15 +230,13 @@ module Zafu
         def node_context_from_signature(signature)
           return nil unless signature.size == 1
           ivar = signature.first
-          return {:class => node.klass, :method => node.name} if ivar == 'this'
-          return nil unless ivar[0..0] == '@'
-          begin
-            klass = Module.const_get(ivar[1..-1].capitalize)
-            context = node(klass)
-          rescue NameError
-            return nil
+          if ivar == 'this'
+            {:class => node.klass, :method => node.name}
+          elsif ivar[0..0] == '@' && klass = get_class(ivar[1..-1].capitalize)
+            {:class => klass.klass, :method => klass.name}
+          else
+            nil
           end
-          {:class => context.klass, :method => context.name}
         end
 
         # Find stored variables back. Stored elements are set with set_xxx='something to eval'.

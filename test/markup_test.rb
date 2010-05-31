@@ -236,7 +236,7 @@ class MarkupTest < Test::Unit::TestCase
         @markup.append_dyn_param(:class, '<%= @bar %>')
         assert_equal '<%= @foo %> <%= @bar %>', @markup.dyn_params[:class]
       end
-      
+
       should 'append param without spacer if conditional' do
         @markup.append_dyn_param(:class, '<%= @bar %>', true)
         assert_equal '<%= @foo %><%= @bar %>', @markup.dyn_params[:class]
@@ -278,7 +278,7 @@ class MarkupTest < Test::Unit::TestCase
         @markup.prepend_dyn_param(:class, '<%= @to %>')
         assert_equal '<%= @to %> <%= @fu %>', @markup.dyn_params[:class]
       end
-      
+
       should 'prepend param without spacer if conditional' do
         @markup.prepend_dyn_param(:class, '<%= @to %>', true)
         assert_equal '<%= @to %><%= @fu %>', @markup.dyn_params[:class]
@@ -366,7 +366,7 @@ class MarkupTest < Test::Unit::TestCase
         assert_equal '<p>one</p>', @duplicate.wrap('one')
       end
     end
-  end
+  end # Duplicating a markup
 end
 
 

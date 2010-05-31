@@ -14,7 +14,8 @@ module Zafu
     CALLBACKS         = TEXT_CALLBACKS + PROCESS_CALLBACKS
 
     @@callbacks = {}
-    attr_accessor :text, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent, :errors
+    attr_accessor :text, :name, :method, :pass, :options, :blocks, :ids, :defined_ids, :parent, :errors
+
     # Method parameters "<r:show attr='name'/>" (params contains {'attr' => 'name'}).
     attr_accessor :params
 
@@ -558,6 +559,7 @@ module Zafu
     end
 
     def expand_with(acontext={})
+
       blocks = acontext.delete(:blocks) || @blocks
       res = ""
 

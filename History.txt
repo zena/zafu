@@ -1,3 +1,8 @@
+== 0.6.1
+
+* 1 minor enhancement
+  * Moved dependent method 'get_attribute_or_eval' from Zena.
+
 == 0.6.0 2010-05-27
 
 * 3 major enhancements

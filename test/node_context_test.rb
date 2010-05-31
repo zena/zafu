@@ -223,6 +223,10 @@ class NodeContextTest < Test::Unit::TestCase
       should 'return the node name in DOM id' do
         assert_equal '<%= @foo.zip %>', subject.dom_id
       end
+      
+      should 'scope without erb on erb false' do
+        assert_equal '#{@foo.zip}', subject.dom_id(:erb => false)
+      end
     end
 
     context 'in a hierarchy of contexts' do
@@ -243,7 +247,7 @@ class NodeContextTest < Test::Unit::TestCase
         end
 
         should 'use dom_scopes' do
-          assert_equal '<%= var1.zip %>_<%= var2.zip %>_<%= var3.zip %>', subject.dom_id
+          assert_equal '<%= %Q{#{var1.zip}_#{var2.zip}_#{var3.zip}} %>', subject.dom_id
         end
       end
 
@@ -254,7 +258,7 @@ class NodeContextTest < Test::Unit::TestCase
         end
 
         should 'not use self twice' do
-          assert_equal '<%= @node.zip %>_<%= var3.zip %>', subject.dom_id
+          assert_equal '<%= %Q{#{@node.zip}_#{var3.zip}} %>', subject.dom_id
         end
       end
 
@@ -264,7 +268,7 @@ class NodeContextTest < Test::Unit::TestCase
         end
 
         should 'use dom_prefix' do
-          assert_equal 'cart_<%= var3.zip %>', subject.dom_id
+          assert_equal '<%= %Q{cart_#{var3.zip}} %>', subject.dom_id
         end
       end
 

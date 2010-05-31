@@ -63,14 +63,14 @@ module Zafu
 
       # Store some contextual value / variable inside a named group. This should be
       # used to avoid key clashes between different types of elements to store.
-      def set_context_var(group, key, obj)
-        @context["#{group}::#{key}"] = obj
+      def set_context_var(group, key, obj, context = @context)
+        context["#{group}::#{key}"] = obj
       end
 
       # Retrieve a value from a given contextual group. The value must have been
       # previously set with 'set_context_var' somewhere in the hierarchy.
-      def get_context_var(group, key)
-        @context["#{group}::#{key}"]
+      def get_context_var(group, key, context = @context)
+        context["#{group}::#{key}"]
       end
 
       # Expand blocks in a new context.
@@ -112,10 +112,17 @@ module Zafu
 
       # Declare a variable that can be used later in the compilation. This method
       # returns the variable name to use.
-      def set_var(var_list, var_name)
-        var_name = var_name.to_sym
-        out parser_error("'#{var_name}' already defined.") if @context[var_name] || var_list[var_name]
-        var_list[var_name] = "_z#{var_name}"
+      def get_var_name(group_name, wanted_name, context = @context)
+        secure_name = wanted_name.gsub(/[^a-zA-Z0-9]/,'')
+        name = "_z#{secure_name}"
+        i    = 0
+        while get_context_var('var', name, context)
+          i += 1
+          name = "_z#{secure_name}#{i}"
+        end
+        set_context_var('var', name, true)
+        set_context_var(group_name, wanted_name, name)
+        name
       end
 
       # Change context for a given scope.
