@@ -99,12 +99,12 @@ class NodeContextTest < Test::Unit::TestCase
           subject = NodeContext.new('@node', SubSubPage)
           assert_equal '@sub_page', subject.as_main(Page).name
         end
-        
+
         context 'in a list context' do
           subject do
             NodeContext.new('list', [SubSubPage])
           end
-          
+
           should 'return current class when using after_class argument' do
             assert_equal SubSubPage, subject.as_main(Page).klass
           end
@@ -113,7 +113,7 @@ class NodeContextTest < Test::Unit::TestCase
             assert_equal '@sub_page', subject.as_main(Page).name
           end
         end # in a list context
-        
+
       end
 
       should 'return subclass on class_name' do
@@ -195,14 +195,14 @@ class NodeContextTest < Test::Unit::TestCase
       NodeContext.new('super', SubPage)
     end
 
-    should 'find the current context required class is an ancestor' do
+    should 'find the required class in ancestors' do
       assert_equal subject.object_id, subject.get(Page).object_id
     end
   end
 
   context 'In a list context' do
     setup do
-      @grandma = NodeContext.new('@page', Page)
+      @grandma = NodeContext.new('@page', SubPage)
       @mother = @grandma.move_to('@comment', Comment)
     end
 

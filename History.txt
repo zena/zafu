@@ -2,6 +2,7 @@
 
 * 1 minor enhancement
   * Moved dependent method 'get_attribute_or_eval' from Zena.
+  * Fixed bugs in Markup#dup and NodeContext changing.
 
 == 0.6.0 2010-05-27
 

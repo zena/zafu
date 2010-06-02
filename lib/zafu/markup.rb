@@ -190,8 +190,8 @@ module Zafu
     # Duplicate markup and make sure params and dyn_params are duplicated as well.
     def dup
       markup = super
-      markup.params = @params.dup
-      markup.dyn_params = @dyn_params.dup
+      markup.instance_variable_set(:@params, @params.dup)
+      markup.instance_variable_set(:@dyn_params, @dyn_params.dup)
       markup
     end
 

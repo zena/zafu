@@ -195,7 +195,7 @@ module Zafu
     def process(context={})
       return '' if @method == 'ignore' || @method.blank?
 
-      @saved = save_state
+      saved = save_state
 
       if @name
         # we pass the name as 'context' in the children tags
@@ -221,7 +221,7 @@ module Zafu
       after_process
 
       # restore state
-      restore_state(@saved)
+      restore_state(saved)
 
       res
     end

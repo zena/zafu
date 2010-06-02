@@ -92,14 +92,14 @@ module Zafu
 
     def get(klass)
       if list_context?
-        if klass <= self.klass.first
+        if self.klass.first <= klass
           NodeContext.new("#{self.name}.first", self.klass.first)
         elsif @up
           @up.get(klass)
         else
           nil
         end
-      elsif self.klass.ancestors.include?(klass)
+      elsif self.klass <= klass
         return self
       elsif @up
         @up.get(klass)

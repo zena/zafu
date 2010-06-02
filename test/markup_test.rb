@@ -349,8 +349,23 @@ class MarkupTest < Test::Unit::TestCase
         @duplicate = @markup.dup
       end
 
-      should 'not propagate changes to original' do
+      should 'not propagate params changes to original' do
         @duplicate.params[:class] = 'two'
+        assert_equal "<p class='one'>one</p>", @markup.wrap('one')
+      end
+      
+      should 'not propagate params changes to duplicate' do
+        @markup.params[:class] = 'two'
+        assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')
+      end
+      
+      should 'not propagate dyn_params changes to original' do
+        @markup.append_dyn_param(:class, 'two')
+        assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')
+      end
+      
+      should 'not propagate dyn_params changes to duplicate' do
+        @duplicate.append_dyn_param(:class, 'two')
         assert_equal "<p class='one'>one</p>", @markup.wrap('one')
       end
     end

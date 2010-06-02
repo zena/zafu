@@ -168,6 +168,7 @@ module Zafu
 
       def r_add
         return parser_error("Should not be called from within 'each'") if parent.method == 'each'
+        return parser_error("Should not be called outside list context") unless node.list_context?
         return '' if @context[:make_form]
 
         if node.will_be?(Comment)
