@@ -73,6 +73,15 @@ module Zafu
         context["#{group}::#{key}"]
       end
 
+      # Return a new context without contextual variables.
+      def context_without_vars
+        context = @context.dup
+        context.keys.each do |k|
+          context.delete(k) if k.kind_of?(String)
+        end
+        context
+      end
+
       # Expand blocks in a new context.
       # This method is partly overwriten in Ajax
       def expand_with_finder(finder)

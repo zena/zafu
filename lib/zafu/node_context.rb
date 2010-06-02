@@ -36,10 +36,11 @@ module Zafu
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
     # from a direct 'show' in a controller). The returned node context has no parent (up is nil).
     # The convention is to use the class of the current object to build this name.
-    # You can also use an 'after_class' parameter to move up in the current object's class hierarchy (see #master_class).
+    # You can also use an 'after_class' parameter to move up in the current object's class hierarchy to get
+    # ivar name (see #master_class).
     def as_main(after_class = nil)
-      klass = after_class ? master_class(after_class) : self.klass
-      NodeContext.new("@#{klass.to_s.underscore}", klass)
+      klass = after_class ? master_class(after_class) : Array(self.klass).first
+      NodeContext.new("@#{klass.to_s.underscore}", Array(self.klass).first)
     end
 
     # Find the class just afer 'after_class' in the class hierarchy.
@@ -58,8 +59,9 @@ module Zafu
     # Generate a unique DOM id for this element based on dom_scopes defined in parent contexts.
     def dom_id(opts = {})
       options = {:list => true, :erb => true}.merge(opts)
+
       if options[:erb]
-        dom = dom_id(opts.merge(:erb => false))
+        dom = dom_id(options.merge(:erb => false))
         if dom =~ /^#\{([^\{]+)\}$/
           "<%= #{$1} %>"
         elsif dom =~ /#\{/
@@ -68,13 +70,11 @@ module Zafu
           dom
         end
       else
-        @dom_id ||= begin
-          if @up
-            [dom_prefix] + @up.dom_scopes + (options[:list] ? [make_scope_id] : [])
-          else
-            [dom_prefix] + (options[:list] ? [make_scope_id] : [])
-          end.compact.uniq.join('_')
-        end
+        if @up
+          [dom_prefix] + @up.dom_scopes + (options[:list] ? [make_scope_id] : [])
+        else
+          [dom_prefix] + (options[:list] ? [make_scope_id] : [])
+        end.compact.uniq.join('_')
       end
     end
 

@@ -90,15 +90,30 @@ class NodeContextTest < Test::Unit::TestCase
           assert_equal subject.klass, subject.as_main.klass
         end
 
-        should 'return an ancestor when using after_class argument' do
+        should 'return current class when using after_class argument' do
           subject = NodeContext.new('@node', SubSubPage)
-          assert_equal SubPage, subject.as_main(Page).klass
+          assert_equal SubSubPage, subject.as_main(Page).klass
         end
 
         should 'rebuild name from ancestor when using after_class argument' do
           subject = NodeContext.new('@node', SubSubPage)
           assert_equal '@sub_page', subject.as_main(Page).name
         end
+        
+        context 'in a list context' do
+          subject do
+            NodeContext.new('list', [SubSubPage])
+          end
+          
+          should 'return current class when using after_class argument' do
+            assert_equal SubSubPage, subject.as_main(Page).klass
+          end
+
+          should 'rebuild name from ancestor when using after_class argument' do
+            assert_equal '@sub_page', subject.as_main(Page).name
+          end
+        end # in a list context
+        
       end
 
       should 'return subclass on class_name' do
@@ -223,7 +238,7 @@ class NodeContextTest < Test::Unit::TestCase
       should 'return the node name in DOM id' do
         assert_equal '<%= @foo.zip %>', subject.dom_id
       end
-      
+
       should 'scope without erb on erb false' do
         assert_equal '#{@foo.zip}', subject.dom_id(:erb => false)
       end

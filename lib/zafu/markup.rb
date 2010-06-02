@@ -189,7 +189,7 @@ module Zafu
 
     # Duplicate markup and make sure params and dyn_params are duplicated as well.
     def dup
-      markup = Markup.new(@tag)
+      markup = super
       markup.params = @params.dup
       markup.dyn_params = @dyn_params.dup
       markup

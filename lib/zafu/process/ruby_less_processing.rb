@@ -116,6 +116,18 @@ module Zafu
       end
 
       private
+        # Extract arguments from params
+        def extract_from_params(*keys)
+          res = []
+
+          keys.each do |key|
+            next unless value = @params[key.to_sym]
+            res << ":#{key} => #{RubyLess.translate_string(value, self)}"
+          end
+
+          res.empty? ? nil : res
+        end
+
         # block_owner should be set to true when we are resolving <r:xxx>...</r:xxx> or <div do='xxx'>...</div>
         def get_method_type(signature, added_options = false)
           if type = node_context_from_signature(signature)

@@ -10,6 +10,9 @@ module Zafu
       def expand_with_finder(finder)
         return super unless finder[:class].kind_of?(Array)
 
+        # reset scope
+        @context[:saved_template] = nil
+
         # Get the block responsible for rendering each elements in the list
         each_block = descendant('each')
         add_block  = descendant('add')
@@ -59,21 +62,21 @@ module Zafu
                 :only  => ['elsif', 'else']
               )
             )
+
+            # 2. Save 'each' template
+            store_block(each_block, :node => self.node.move_to(var, finder[:class])) #, :klass => klass) # do we need klass here ?
+
+            # 3. Save 'form' template
+            cont = {
+              :saved_template     => form_url(node.dom_prefix),
+              :klass              => klass,
+              :make_form          => each_block == form_block,
+              :publish_after_save => publish_after_save,
+            }
+
+            store_block(form_block, cont)
           end
           out "<% end -%>"
-
-          # 2. Save 'each' template
-          store_block(each_block) #, :klass => klass) # do we need klass here ?
-
-          # 3. Save 'form' template
-          cont = {
-            :saved_template     => form_url(node.dom_prefix),
-            :klass              => klass,
-            :make_form          => each_block == form_block,
-            :publish_after_save => publish_after_save,
-          }
-
-          store_block(form_block, cont)
         else
           super
         end
@@ -117,6 +120,8 @@ module Zafu
         # Since we are using ajax, we will need this object to have an ID set.
         set_dom_prefix
 
+        @markup.done = false
+
         if @context[:block] == self
           # Storing template (called from within store_block)
           # Set id with the template's node context (<%= @node.zip %>). 'false' means we are not
@@ -135,6 +140,31 @@ module Zafu
           out expand_with
         end
       end
+
+
+      def r_edit
+        # ajax
+        #if @context[:form]
+        #  # cancel button
+        #  @context[:form_cancel] || ''
+        #else
+          # edit button
+
+          # TODO: show 'reply' instead of 'edit' in comments if visitor != author
+          if each_block = ancestor('each')
+            link = @markup.wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
+            out "<% if #{node}.can_write? -%>#{link}<% end -%>"
+          end
+        #end
+
+        #if @context[:template_url]
+        #else
+        #  # FIXME: we could link to some html page to edit the item.
+        #  ""
+        #end
+      end
+
+      alias r_cancel r_edit
 
       def r_add
         return parser_error("Should not be called from within 'each'") if parent.method == 'each'
@@ -220,7 +250,7 @@ module Zafu
           @markup.set_param(:style, options[:style]) if options[:style]
 
           out @markup.wrap(expand_with)
-        else
+        elsif
           super
         end
       end
@@ -272,12 +302,12 @@ module Zafu
           root.descendants('block').each do |block|
             return block if block.name == name
           end
-          out parser_error("could not find a block named '#{name}'")
+          out self.class.parser_error("could not find a block named '#{name}'", @method)
           nil
         end
 
         def store_block(block, cont = {})
-          cont = @context.merge(cont)
+          cont = context_without_vars.merge(cont)
 
           # Create new node context
           node = cont[:node].as_main(ActiveRecord::Base)
@@ -287,11 +317,6 @@ module Zafu
           cont[:node]  = node
           cont[:block] = block
           cont[:saved_template] ||= cont[:template_url]
-          @context.each do |k, v|
-            if k.kind_of?(String)
-              cont[k] = nil
-            end
-          end
 
           template = expand_block(block, cont)
 

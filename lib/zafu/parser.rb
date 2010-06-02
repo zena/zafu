@@ -35,7 +35,7 @@ module Zafu
       end
 
       def parser_error(message, method)
-        "<span class='parser_error'><span class='method'>#{method}: <span class='message'>#{message}</span></span>"
+        "<span class='parser_error'><span class='method'>#{method}</span> <span class='message'>#{message}</span></span>"
       end
 
       CALLBACKS.each do |clbk|
@@ -215,7 +215,7 @@ module Zafu
       res = before_wrap(res)
       res = wrap(res + @out_post)
 
-      # @text contains unparsed data (empty space)
+      # @text contains unparsed data (white space)
       res = after_wrap(res) + @text
 
       after_process
