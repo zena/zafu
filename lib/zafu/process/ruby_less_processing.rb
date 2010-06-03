@@ -245,7 +245,11 @@ module Zafu
           if ivar == 'this'
             {:class => node.klass, :method => node.name}
           elsif ivar[0..0] == '@' && klass = get_class(ivar[1..-1].capitalize)
-            {:class => klass.klass, :method => klass.name}
+            if node = self.node(klass)
+              {:class => node.klass, :method => node.name}
+            else
+              nil
+            end
           else
             nil
           end
