@@ -302,7 +302,7 @@ module Zafu
 
       included_text, absolute_url, base_path = self.class.get_template_text(@params[:template], @options[:helper], @options[:base_path])
 
-      if included_text
+      if absolute_url
         absolute_url += "::#{@params[:part].gsub('/','_')}" if @params[:part]
         absolute_url += "??#{@options[:part].gsub('/','_')}" if @options[:part]
         if @options[:included_history].include?(absolute_url)
@@ -311,7 +311,8 @@ module Zafu
           included_history  = @options[:included_history] + [absolute_url]
         end
       else
-        return "<span class='parser_error'>[include] template '#{@params[:template]}' not found</span>"
+        # Error: included_text contains the error meessage
+        return included_text
       end
 
       res = self.class.new(included_text, :helper => @options[:helper], :base_path => base_path, :included_history => included_history, :part => @params[:part], :parent => self) # we set :part to avoid loop failure when doing self inclusion
