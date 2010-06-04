@@ -48,7 +48,13 @@ module Zafu
         end
       end
 
-      # Expand blocks with conditional enabled (else, elsif, etc).
+      # Expand blocks with conditional processing enabled (else, elsif, etc).
+      #
+      # ==== Parameters
+      #
+      # * +condition+ - ruby condition for the conditional execution.
+      # * +new_node_context+ - (optional) new node context to enter if the clause succeeds.
+      # * +alt_markup+ - (optional) alternative markup to use for the 'else', 'elsif' clauses.
       def expand_if(condition, new_node_context = self.node, alt_markup = @markup)
         res = ""
         res << "<% if #{condition} -%>"

@@ -119,8 +119,14 @@ module Zafu
         {}
       end
 
-      # Declare a variable that can be used later in the compilation. This method
-      # returns the variable name to use.
+      # Get a variable name and store the name in context variables for the given group.
+      #
+      # ==== Parameters
+      #
+      # * +group_name+  - name of the variable context group
+      # * +wanted_name+ - wanted variable name (used as key to get real var back later with #get_context_var)
+      # * +context+ - (optional) can be used if we do not want to store the variable definition in the current context
+      #
       def get_var_name(group_name, wanted_name, context = @context)
         secure_name = wanted_name.gsub(/[^a-zA-Z0-9]/,'')
         name = "_z#{secure_name}"
