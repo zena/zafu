@@ -318,6 +318,11 @@ class MarkupTest < Test::Unit::TestCase
       @markup.set_params(:baz => 'buzz')
       assert_equal "<p class='quote' style='padding:3px; border:1px solid red;' baz='buzz' foo='<%= @bar %>'>foo</p>", @markup.wrap('foo')
     end
+
+    should 'insert pre_wrap content' do
+      @markup.pre_wrap[:foo] = 'FOO'
+      assert_equal %q{<p class='quote' style='padding:3px; border:1px solid red;'>FOOcontent</p>}, @markup.wrap('content')
+    end
   end
 
   context 'Compiling params' do
@@ -345,7 +350,7 @@ class MarkupTest < Test::Unit::TestCase
     context 'and changing params' do
       setup do
         @markup = Markup.new('p')
-        @markup.params[:class] = 'one'
+        @markup.params[:class]  = 'one'
         @duplicate = @markup.dup
       end
 
@@ -353,20 +358,32 @@ class MarkupTest < Test::Unit::TestCase
         @duplicate.params[:class] = 'two'
         assert_equal "<p class='one'>one</p>", @markup.wrap('one')
       end
-      
+
       should 'not propagate params changes to duplicate' do
         @markup.params[:class] = 'two'
         assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')
       end
       
+      should 'not propagate appended params to duplicate' do
+        @markup.append_param(:class, 'drop')
+        assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')
+      end
+
       should 'not propagate dyn_params changes to original' do
         @markup.append_dyn_param(:class, 'two')
         assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')
       end
-      
+
       should 'not propagate dyn_params changes to duplicate' do
         @duplicate.append_dyn_param(:class, 'two')
         assert_equal "<p class='one'>one</p>", @markup.wrap('one')
+      end
+
+      should 'not propagate pre_wrap changes to duplicate' do
+        @markup.pre_wrap[:drop] = 'no bombs'
+        @duplicate = @markup.dup
+        @duplicate.pre_wrap[:drop] = 'ego'
+        assert_equal "<p class='one'>no bombs</p>", @markup.wrap('')
       end
     end
 

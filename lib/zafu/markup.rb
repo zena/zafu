@@ -192,13 +192,23 @@ module Zafu
       markup = super
       markup.instance_variable_set(:@params, @params.dup)
       markup.instance_variable_set(:@dyn_params, @dyn_params.dup)
+      markup.instance_variable_set(:@pre_wrap, @pre_wrap.dup) if @pre_wrap
       markup
+    end
+
+    # Store some text to insert at the beggining of the tag content on wrap. Inserted
+    # elements are indexed in a hash but only values are shown.
+    def pre_wrap
+      @pre_wrap ||= {}
     end
 
     # Wrap the given text with our tag. If 'append' is not empty, append the text
     # after the tag parameters: <li class='foo'[APPEND HERE]>text</li>.
     def wrap(text, *append)
       return text if @done
+
+      text = "#{@pre_wrap.values}#{text}" if @pre_wrap
+
       if dyn_params[:id]
         @tag ||= 'div'
       end
@@ -206,7 +216,7 @@ module Zafu
       append ||= []
       if @tag
         if text.blank? && EMPTY_TAGS.include?(@tag)
-          res = "<#{@tag}#{params_to_html}#{append.join('')}/>"
+          res = "#{@pre_wrap}<#{@tag}#{params_to_html}#{append.join('')}/>"
         else
           res = "<#{@tag}#{params_to_html}#{append.join('')}>#{text}</#{@tag}>"
         end

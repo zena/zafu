@@ -13,7 +13,7 @@ module Zafu
 
         if descendant('form_tag')
           # We have a specific place to insert our form
-          out expand_with(:form_options => options)
+          out expand_with(:form_options => options, :form => self)
         else
           r_form_tag(options)
         end
@@ -33,7 +33,10 @@ module Zafu
             # Render error messages tag
             form_error_messages(opts[:form_helper])
 
-            # Render hidden fields
+            # Render form elements
+            out expand_with(opts)
+
+            # Render hidden fields (these must go after normal elements so that focusFirstElement works)
             hidden_fields = form_hidden_fields(options)
             out "<div class='hidden'>"
             hidden_fields.each do |k,v|
@@ -46,9 +49,6 @@ module Zafu
               end
             end
             out '</div>'
-
-            # Render form elements
-            out expand_with(opts)
 
             # What is this ?
             #@blocks = opts[:blocks_bak] if opts[:blocks_bak]
@@ -99,8 +99,9 @@ module Zafu
         # Render the 'form' tag and set expansion context.
         def form_tag(options)
           opts = options.dup
+          form = @context[:form]
 
-          if descendant('cancel') || descendant('edit')
+          if form && (form.descendant('cancel') || form.descendant('edit'))
             # Pass 'form_cancel' content to expand_with (already in options).
           else
             # Insert cancel before form

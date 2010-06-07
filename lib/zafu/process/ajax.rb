@@ -42,10 +42,10 @@ module Zafu
             # Pagination count and other contextual variables exist here.
 
             # INLINE ==========
-            # 'r_add' needs the form when rendering. Send with :form.
             out @markup.wrap(
               expand_with(
                 :in_if              => false,
+                # 'r_add' needs the form when rendering. Send with :form.
                 :form               => form_block,
                 :publish_after_save => publish_after_save,
                 # Do not render the form block directly: let [add] do this.
@@ -124,8 +124,7 @@ module Zafu
 
         if @context[:block] == self
           # Storing template (called from within store_block)
-          # Set id with the template's node context (<%= @node.zip %>). 'false' means we are not
-          # in a list.
+          # Set id with the template's node context (<%= @node.zip %>).
           @markup.set_id(node.dom_id(:list => false))
           expand_with
         else
@@ -134,8 +133,7 @@ module Zafu
           store_block(self)
 
           # 2. render
-          # Set id with the current node context (<%= var1.zip %>). 'false' means we are not
-          # in a list.
+          # Set id with the current node context (<%= var1.zip %>).
           @markup.set_id(node.dom_id(:list => false))
           out expand_with
         end
@@ -144,18 +142,19 @@ module Zafu
 
       def r_edit
         # ajax
-        #if @context[:form]
-        #  # cancel button
-        #  @context[:form_cancel] || ''
-        #else
+        if @context[:form_cancel]
+          # cancel button
+          @context[:form_cancel]
+        else
           # edit button
 
           # TODO: show 'reply' instead of 'edit' in comments if visitor != author
-          if each_block = ancestor('each')
-            link = @markup.wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
-            out "<% if #{node}.can_write? -%>#{link}<% end -%>"
-          end
-        #end
+          each_block = ancestor('each')
+
+          link = @markup.wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
+
+          out "<% if #{node}.can_write? -%>#{link}<% end -%>"
+        end
 
         #if @context[:template_url]
         #else
@@ -164,7 +163,9 @@ module Zafu
         #end
       end
 
-      alias r_cancel r_edit
+      def r_cancel
+        (@context[:form_options] || {})[:form_cancel]
+      end
 
       def r_add
         return parser_error("Should not be called from within 'each'") if parent.method == 'each'
@@ -251,19 +252,37 @@ module Zafu
           @markup.set_param(:style, options[:style]) if options[:style]
 
           out @markup.wrap(expand_with)
-        elsif
+        else
           super
         end
       end
 
-      # Return true if we need to insert the dom id for this element. This method is overwritten in Ajax.
+      # Block visibility of descendance with 'do_list'.
+      def public_descendants
+        all = super
+        if ['context', 'each', 'block'].include?(self.method)
+          # do not propagate 'form',etc up
+          all.reject do |k,v|
+            ['form','unlink'].include?(k)
+          end
+        elsif ['if', 'case'].include?(self.method)
+          all.reject do |k,v|
+            ['else', 'elsif', 'when'].include?(k)
+          end
+        else
+          all
+        end
+      end
+
+      # Return true if we need to insert the dom id for this element.
       def need_dom_id?
-        @context[:form]
+        @context[:form] || descendant('unlink') || descendant('drop')
       end
 
       # Set a unique DOM prefix to build unique ids in the page.
-      def set_dom_prefix
+      def set_dom_prefix(node = self.node)
         @name ||= unique_name
+        # TODO: should rebuild descendants list in parents...
         node.dom_prefix = @name
       end
 
@@ -300,6 +319,9 @@ module Zafu
 
         # Find a block to update on the page
         def find_target(name)
+          # Hack for drop until descendants is rebuilt on set_dom_prefix
+          return self if name == self.name
+
           root.descendants('block').each do |block|
             return block if block.name == name
           end
@@ -319,7 +341,12 @@ module Zafu
           cont[:block] = block
           cont[:saved_template] ||= cont[:template_url]
 
-          template = expand_block(block, cont)
+          template = nil
+
+          # We overwrite all context: no merge.
+          with_context(cont, false) do
+            template = expand_block(block)
+          end
 
           out helper.save_erb_to_url(template, cont[:saved_template])
         end

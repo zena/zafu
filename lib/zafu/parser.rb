@@ -23,6 +23,7 @@ module Zafu
       def new_with_url(path, opts={})
         helper = opts[:helper] || Zafu::MockHelper.new
         text, fullpath, base_path = self.get_template_text(path, helper)
+        return parser_error("template '#{path}' not found", 'include') unless text
         self.new(text, :helper => helper, :base_path => base_path, :included_history => [fullpath], :root => path)
       end
 
@@ -288,7 +289,7 @@ module Zafu
     end
 
     def include_template
-      return parser_error("missing 'template' attribute", 'include') unless @params[:template]
+      return self.class.parser_error("missing 'template' attribute", 'include') unless @params[:template]
       if @options[:part] && @options[:part] == @params[:part]
         # fetching only a part, do not open this element (same as original caller) as it is useless and will make us loop the loop.
         @method = 'ignore'
@@ -312,7 +313,8 @@ module Zafu
         end
       else
         # Error: included_text contains the error meessage
-        return included_text
+        @blocks = [included_text]
+        return
       end
 
       res = self.class.new(included_text, :helper => @options[:helper], :base_path => base_path, :included_history => included_history, :part => @params[:part], :parent => self) # we set :part to avoid loop failure when doing self inclusion

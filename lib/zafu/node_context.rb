@@ -86,7 +86,7 @@ module Zafu
 
     # Mark the current context as being a looping element (each) whose DOM id needs to be propagated to sub-nodes
     # in order to ensure uniqueness of the dom_id (loops in loops problem).
-    def dom_scope!
+    def propagate_dom_scope!
       @dom_scope = true
     end
 

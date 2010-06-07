@@ -257,8 +257,8 @@ class NodeContextTest < Test::Unit::TestCase
 
       context 'with parents as dom_scopes' do
         setup do
-          @b.dom_scope!
-          @c.dom_scope!
+          @b.propagate_dom_scope!
+          @c.propagate_dom_scope!
         end
 
         should 'use dom_scopes' do
@@ -268,8 +268,8 @@ class NodeContextTest < Test::Unit::TestCase
 
       context 'with ancestors and self as dom_scopes' do
         setup do
-          @a.dom_scope!
-          subject.dom_scope!
+          @a.propagate_dom_scope!
+          subject.propagate_dom_scope!
         end
 
         should 'not use self twice' do

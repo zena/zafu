@@ -1,8 +1,10 @@
 == 0.6.1
 
-* 1 minor enhancement
+* 3 minor enhancements
   * Moved dependent method 'get_attribute_or_eval' from Zena.
   * Fixed bugs in Markup#dup and NodeContext changing.
+  * Fixed error reporting on missing template.
+  * Added 'pre_wrap' method to Markup.
 
 == 0.6.0 2010-05-27
 

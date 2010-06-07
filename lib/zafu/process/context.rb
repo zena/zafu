@@ -32,6 +32,7 @@ module Zafu
           end
 
           with_context(:node => node.move_to(var, node.klass.first)) do
+            node.propagate_dom_scope!
             steal_and_eval_html_params_for(@markup, @params)
             @markup.set_id(node.dom_id) if need_dom_id?
             out @markup.wrap(expand_with)
@@ -141,10 +142,14 @@ module Zafu
       end
 
       # Change context for a given scope.
-      def with_context(cont)
+      def with_context(cont, merge = true)
         raise "Block missing" unless block_given?
         cont_bak = @context.dup
-          @context.merge!(cont)
+          if merge
+            @context.merge!(cont)
+          else
+            @context = cont
+          end
           res = yield
         @context = cont_bak
         res
