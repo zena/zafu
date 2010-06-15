@@ -59,7 +59,7 @@ module Zafu
         res = ""
         res << "<% if #{condition} -%>"
         res << @markup.wrap(expand_with(:node => new_node_context))
-        res << expand_with(:in_if => true, :only => %w{else elsif when}, :markup => alt_markup)
+        res << expand_with(:in_if => true, :only => /^[A-Z]|else|elsif|when/, :markup => alt_markup)
         res << "<% end -%>"
         res
       end

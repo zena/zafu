@@ -107,7 +107,8 @@ module Zafu
 
         src = @params.delete(key)
         if src && src[0..6] != 'http://'
-          @markup.params[key] = helper.send(:template_url_for_asset, :src => src, :base_path => @options[:base_path], :type => type)
+          new_value = helper.send(:template_url_for_asset, :src => src, :base_path => @options[:base_path], :type => type)
+          @markup.params[key] = new_value.blank? ? src : new_value
         end
 
         @markup.steal_html_params_from(@params)

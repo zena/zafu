@@ -26,7 +26,6 @@ module Zafu
           @params.each do |k, v|
             markup.set_param(k, v)
           end
-          out markup.wrap(expand_with)
         else
           # <form> inside <r:form>
           form_tag(options) do |opts|
@@ -70,7 +69,10 @@ module Zafu
         # Return id, style, form and cancel parts of the form.
         def form_options
           opts = {}
-          opts[:klass] = node.master_class(ActiveRecord::Base)
+
+          # Do we need this ?
+          # opts[:klass] = node.master_class(ActiveRecord::Base).to_s
+
           if @context[:in_add]
             opts[:id]    = "#{node.dom_prefix}_form"
             opts[:style] = 'display:none;'

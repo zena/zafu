@@ -12,7 +12,7 @@ module Zafu
           def do_method(sym)
             super
           rescue RubyLess::Error => err
-            self.class.parser_error(err.message, @method)
+            parser_error(err.message)
           end
         end
       end
@@ -39,9 +39,9 @@ module Zafu
           rubyless_render(@method, @params)
         end
       rescue RubyLess::NoMethodError => err
-        parser_error("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> (#{node.class_name} context)")
+        parser_continue("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> for #{err.receiver_with_class}")
       rescue RubyLess::Error => err
-        parser_error(err.message)
+        parser_continue(err.message)
       end
 
       # Print documentation on the current node type.
@@ -243,7 +243,11 @@ module Zafu
           return nil unless signature.size == 1
           ivar = signature.first
           if ivar == 'this'
-            {:class => node.klass, :method => node.name}
+            if node.list_context?
+              raise RubyLess::Error.new("Cannot use 'this' in list_context.")
+            else
+              {:class => node.klass, :method => node.name}
+            end
           elsif ivar[0..0] == '@' && klass = get_class(ivar[1..-1].capitalize)
             if node = self.node(klass)
               {:class => node.klass, :method => node.name}

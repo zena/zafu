@@ -106,9 +106,17 @@ module Zafu
       end
     end
 
-    def parser_error(message, method = @method)
-      @errors << "<span class='parser_error'><span class='method'>#{method}</span> <span class='message'>#{message}</span></span>"
-      nil
+    def parser_error(message, method = @method, halt = true)
+      if halt
+        self.class.parser_error(method, method)
+      else
+        @errors << self.class.parser_error(method, method)
+        nil
+      end
+    end
+
+    def parser_continue(message, method = @method)
+      parser_error(method, method, false)
     end
 
     def process_unknown
@@ -289,7 +297,7 @@ module Zafu
     end
 
     def include_template
-      return self.class.parser_error("missing 'template' attribute", 'include') unless @params[:template]
+      return parser_error("missing 'template' attribute") unless @params[:template]
       if @options[:part] && @options[:part] == @params[:part]
         # fetching only a part, do not open this element (same as original caller) as it is useless and will make us loop the loop.
         @method = 'ignore'
@@ -585,10 +593,10 @@ module Zafu
 
       blocks.each do |b|
         if b.kind_of?(String)
-          if (!only || only.include?(:string)) && (!ignore || !ignore.include?(:string))
+          if (!only || (only.kind_of?(Array) && only.include?(:string))) && (!ignore || !ignore.include?(:string))
             res << b
           end
-        elsif (!only || only.include?(b.method)) && (!ignore || !ignore.include?(b.method))
+        elsif (!only || (only.kind_of?(Array) && only.include?(b.method)) || only =~ b.method) && (!ignore || !ignore.include?(b.method))
           res << b.process(new_context.dup)
           if pass = b.pass
             if pass[:part]

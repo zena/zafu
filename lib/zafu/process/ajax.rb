@@ -325,8 +325,9 @@ module Zafu
           root.descendants('block').each do |block|
             return block if block.name == name
           end
-          out self.class.parser_error("could not find a block named '#{name}'", @method)
-          nil
+
+          out parser_error("could not find a block named '#{name}'")
+          return nil
         end
 
         def store_block(block, cont = {})

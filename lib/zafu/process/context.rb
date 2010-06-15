@@ -87,13 +87,13 @@ module Zafu
       # This method is partly overwriten in Ajax
       def expand_with_finder(finder)
         if finder[:nil]
-          open_node_context(finder) do
+          open_node_context(finder, :form => nil) do # do not propagate :form
             expand_if("#{var} = #{finder[:method]}", node.move_to(var, finder[:class]))
           end
         else
           res = ''
           res << "<% #{var} = #{finder[:method]} -%>"
-          open_node_context(finder, :node => node.move_to(var, finder[:class])) do
+          open_node_context(finder, :node => node.move_to(var, finder[:class]), :form => nil) do
             res << @markup.wrap(expand_with)
           end
           res
