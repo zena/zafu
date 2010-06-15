@@ -5,7 +5,7 @@ module Zafu
     # context, the "node" context holds information on the type of "this" (first responder).
     module Context
       def r_each
-        if node.klass.kind_of?(Array)
+        if node.list_context?
           if @params[:alt_class] || @params[:join]
             out "<% #{var}_max_index = #{node}.size - 1 -%>" if @params[:alt_reverse]
             out "<% #{node}.each_with_index do |#{var},#{var}_index| -%>"
@@ -34,8 +34,10 @@ module Zafu
           with_context(:node => node.move_to(var, node.klass.first)) do
             node.propagate_dom_scope!
             steal_and_eval_html_params_for(@markup, @params)
+
             @markup.set_id(node.dom_id) if need_dom_id?
-            out @markup.wrap(expand_with)
+
+            out wrap(expand_with)
           end
           out "<% end -%>"
         else
@@ -94,7 +96,7 @@ module Zafu
           res = ''
           res << "<% #{var} = #{finder[:method]} -%>"
           open_node_context(finder, :node => node.move_to(var, finder[:class]), :form => nil) do
-            res << @markup.wrap(expand_with)
+            res << wrap(expand_with)
           end
           res
         end

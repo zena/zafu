@@ -41,7 +41,7 @@ module Zafu
             @markup.set_dyn_param(k, v)
           end
 
-          out "<% elsif #{cond} -%>#{@markup.wrap(res)}" # do not propagate
+          out "<% elsif #{cond} -%>#{wrap(res)}" # do not propagate
         else
           @markup.done = true # never wrap else/elsif clause
           out "<% elsif #{cond} -%>#{res}" # do not propagate
@@ -58,7 +58,11 @@ module Zafu
       def expand_if(condition, new_node_context = self.node, alt_markup = @markup)
         res = ""
         res << "<% if #{condition} -%>"
-        res << @markup.wrap(expand_with(:node => new_node_context))
+
+        with_context(:node => new_node_context) do
+          res << wrap(expand_with)
+        end
+
         res << expand_with(:in_if => true, :only => /^[A-Z]|else|elsif|when/, :markup => alt_markup)
         res << "<% end -%>"
         res

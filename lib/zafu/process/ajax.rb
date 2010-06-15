@@ -42,7 +42,7 @@ module Zafu
             # Pagination count and other contextual variables exist here.
 
             # INLINE ==========
-            out @markup.wrap(
+            out wrap(
               expand_with(
                 :in_if              => false,
                 # 'r_add' needs the form when rendering. Send with :form.
@@ -56,7 +56,7 @@ module Zafu
 
             # Render 'else' clauses
             @markup.done = false
-            out @markup.wrap(
+            out wrap(
               expand_with(
                 :in_if => true,
                 :only  => ['elsif', 'else']
@@ -81,7 +81,7 @@ module Zafu
           super
         end
 
-        # out @markup.wrap(expand_with(:node => node.move_to(var, finder[:class]), :in_if => true))
+        # out wrap(expand_with(:node => node.move_to(var, finder[:class]), :in_if => true))
 
 
         #query = opts[:query]
@@ -151,7 +151,7 @@ module Zafu
           # TODO: show 'reply' instead of 'edit' in comments if visitor != author
           each_block = ancestor('each')
 
-          link = @markup.wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
+          link = wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
 
           out "<% if #{node}.can_write? -%>#{link}<% end -%>"
         end
@@ -199,7 +199,7 @@ module Zafu
           end
 
           # Expand 'add' block
-          out @markup.wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
+          out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
           # New object to render form.
           # FIXME: use 'klass' param in r_add or r_form instead of current list content.
@@ -233,7 +233,7 @@ module Zafu
         else
           # no ajax
           @markup.append_param(:class, 'btn_add') if @markup.tag
-          out @markup.wrap(expand_with)
+          out wrap(expand_with)
         end
         out "<% end -%>"
       end
@@ -251,7 +251,7 @@ module Zafu
           @markup.set_id(options[:id]) if options[:id]
           @markup.set_param(:style, options[:style]) if options[:style]
 
-          out @markup.wrap(expand_with)
+          out wrap(expand_with)
         else
           super
         end

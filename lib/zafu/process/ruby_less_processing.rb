@@ -27,16 +27,16 @@ module Zafu
 
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
-      def rubyless_eval
+      def rubyless_eval(params = @params)
         if @method =~ /^[A-Z]\w+$/
           return rubyless_class_scope(@method)
         end
 
         if code = @method[/^\#\{(.+)\}$/, 1]
-          @params[:eval] = $1
+          params[:eval] = $1
           r_show
         else
-          rubyless_render(@method, @params)
+          rubyless_render(@method, params)
         end
       rescue RubyLess::NoMethodError => err
         parser_continue("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> for #{err.receiver_with_class}")
@@ -130,6 +130,8 @@ module Zafu
 
         # block_owner should be set to true when we are resolving <r:xxx>...</r:xxx> or <div do='xxx'>...</div>
         def get_method_type(signature, added_options = false)
+          raise "#{node.klass.class}" unless node.klass.kind_of?(Array) || node.klass.kind_of?(Class)
+
           if type = node_context_from_signature(signature)
             # Resolve self, @page, @node
             type

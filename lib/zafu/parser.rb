@@ -9,8 +9,18 @@ module Zafu
   end
 
   class Parser
-    TEXT_CALLBACKS    = %w{before_parse after_parse before_wrap wrap after_wrap}
-    PROCESS_CALLBACKS = %w{before_process expander process_unknown after_process}
+    # If you wonder what the difference is between 'after_wrap' and 'after_process' here it is:
+    # 'after_wrap' is called by the 'wrap' method from within the method handler, 'after_process' is called
+    # at the very end. Example:
+    #
+    #   <% if var = Node.all -%>                                  | <---
+    #     <li>...</li>               <--- content for after_wrap  | <---  content for after_process
+    #   <% end -%>                                                | <---
+    #
+
+
+    TEXT_CALLBACKS    = %w{before_parse after_parse before_wrap wrap after_wrap after_process}
+    PROCESS_CALLBACKS = %w{before_process expander process_unknown}
     CALLBACKS         = TEXT_CALLBACKS + PROCESS_CALLBACKS
 
     @@callbacks = {}
@@ -36,7 +46,11 @@ module Zafu
       end
 
       def parser_error(message, method)
-        "<span class='parser_error'><span class='method'>#{method}</span> <span class='message'>#{message}</span></span>"
+        "<span class='parser_error'><span class='method'>#{erb_safe method}</span> <span class='message'>#{erb_safe message}</span></span>"
+      end
+
+      def erb_safe(text)
+        text.gsub('<', '&lt;').gsub('>', '&gt;')
       end
 
       CALLBACKS.each do |clbk|
@@ -92,9 +106,8 @@ module Zafu
     def wrap(text)
       after_wrap(
         wrap_callbacks(
-          before_wrap(text + @out_post)
+          before_wrap(text) + @out_post
         )
-
         # @text contains unparsed data (white space)
       ) + @text
     end
@@ -233,7 +246,7 @@ module Zafu
 
       res = wrap(expander || default_expander)
 
-      after_process
+      res = after_process(res)
 
       # restore state
       restore_state(saved)
