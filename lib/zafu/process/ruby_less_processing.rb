@@ -107,12 +107,12 @@ module Zafu
         elsif use_string_block && @blocks.size == 1 && @blocks.first.kind_of?(String)
           return RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first)
         else
-          return parser_error("Missing attribute/eval parameter")
+          return parser_continue("Missing attribute/eval parameter")
         end
 
         RubyLess.translate(code, self)
       rescue RubyLess::Error => err
-        parser_error(err.message, code)
+        return parser_continue(err.message, code)
       end
 
       private

@@ -87,6 +87,18 @@ module Zafu
       }
     end
 
+    alias wrap_callbacks wrap
+
+    def wrap(text)
+      after_wrap(
+        wrap_callbacks(
+          before_wrap(text + @out_post)
+        )
+
+        # @text contains unparsed data (white space)
+      ) + @text
+    end
+
     # This method is called at the very beginning of the processing chain and is
     # used to store state to make 'process' reintrant...
     def save_state
@@ -108,15 +120,15 @@ module Zafu
 
     def parser_error(message, method = @method, halt = true)
       if halt
-        self.class.parser_error(method, method)
+        self.class.parser_error(message, method)
       else
-        @errors << self.class.parser_error(method, method)
+        @errors << self.class.parser_error(message, method)
         nil
       end
     end
 
     def parser_continue(message, method = @method)
-      parser_error(method, method, false)
+      parser_error(message, method, false)
     end
 
     def process_unknown
@@ -219,13 +231,7 @@ module Zafu
 
       @pass = {} # used to pass information to the parent (is this used ?)
 
-      res = expander || default_expander
-
-      res = before_wrap(res)
-      res = wrap(res + @out_post)
-
-      # @text contains unparsed data (white space)
-      res = after_wrap(res) + @text
+      res = wrap(expander || default_expander)
 
       after_process
 

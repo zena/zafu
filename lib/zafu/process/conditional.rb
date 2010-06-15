@@ -3,8 +3,8 @@ module Zafu
     # This module manages conditional rendering (if, else, elsif, case, when).
     module Conditional
       def r_if(cond = nil)
-        cond ||= get_attribute_or_eval(false)
-        return parser_error("condition error") unless cond
+        cond ||= get_condition
+        return unless cond
         expand_if(cond)
       end
 
@@ -22,8 +22,8 @@ module Zafu
 
       def r_elsif(cond = nil)
         return '' unless @context[:in_if]
-        cond ||= get_attribute_or_eval(false)
-        return parser_error("condition error") unless cond
+        cond ||= get_condition
+        return unless cond
 
         res = expand_with(:in_if => false, :markup => nil)
 
@@ -63,6 +63,15 @@ module Zafu
         res << "<% end -%>"
         res
       end
+
+      private
+        def get_condition
+          if in_tag = @params[:in]
+            ancestor(in_tag) ? 'true' : 'false'
+          else
+            get_attribute_or_eval(false)
+          end
+        end
     end # Context
   end # Process
 end # Zafu
