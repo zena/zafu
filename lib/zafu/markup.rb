@@ -165,6 +165,10 @@ module Zafu
       end
     end
 
+    def append_attribute(text_to_append)
+      (@append ||= '') << text_to_append
+    end
+
     def append_dyn_param(key, value, conditional = false)
       spacer = conditional ? '' : ' '
       if prev_value = @params.delete(key)
@@ -204,7 +208,7 @@ module Zafu
 
     # Wrap the given text with our tag. If 'append' is not empty, append the text
     # after the tag parameters: <li class='foo'[APPEND HERE]>text</li>.
-    def wrap(text, *append)
+    def wrap(text)
       return text if @done
 
       text = "#{@pre_wrap.values}#{text}" if @pre_wrap
@@ -213,12 +217,11 @@ module Zafu
         @tag ||= 'div'
       end
 
-      append ||= []
       if @tag
         if text.blank? && EMPTY_TAGS.include?(@tag)
-          res = "#{@pre_wrap}<#{@tag}#{params_to_html}#{append.join('')}/>"
+          res = "#{@pre_wrap}<#{@tag}#{params_to_html}#{@append}/>"
         else
-          res = "<#{@tag}#{params_to_html}#{append.join('')}>#{text}</#{@tag}>"
+          res = "<#{@tag}#{params_to_html}#{@append}>#{text}</#{@tag}>"
         end
       else
         res = text

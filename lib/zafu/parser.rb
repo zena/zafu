@@ -50,7 +50,7 @@ module Zafu
       end
 
       def erb_safe(text)
-        text.gsub('<', '&lt;').gsub('>', '&gt;')
+        text.gsub('<%', '&lt;%').gsub('%>', '%&gt;')
       end
 
       CALLBACKS.each do |clbk|

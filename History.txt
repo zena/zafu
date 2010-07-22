@@ -6,6 +6,7 @@
   * Fixed error reporting on missing template.
   * Added 'pre_wrap' method to Markup.
   * Refactored wrapping to use a single method call.
+  * Fixed block in each dom scoping.
 
 == 0.6.0 2010-05-27
 

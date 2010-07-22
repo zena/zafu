@@ -38,7 +38,7 @@ module Zafu
           set_dom_prefix
 
           # New node context.
-          open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do #, :need_link_id => form_block.need_link_id) do
+          open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do
             # Pagination count and other contextual variables exist here.
 
             # INLINE ==========
@@ -117,6 +117,12 @@ module Zafu
 
       # Store a context as a sub-template that can be used in ajax calls
       def r_block
+        if parent.method == 'each' && @method == parent.single_child_method
+          # Block stored in 'each', do nothing
+          # What happens when this is used as remote target ?
+          return expand_with
+        end
+
         # Since we are using ajax, we will need this object to have an ID set.
         set_dom_prefix
 
@@ -282,6 +288,7 @@ module Zafu
       # Set a unique DOM prefix to build unique ids in the page.
       def set_dom_prefix(node = self.node)
         @name ||= unique_name
+        raise if @name == 'list3'
         # TODO: should rebuild descendants list in parents...
         node.dom_prefix = @name
       end

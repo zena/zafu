@@ -309,6 +309,11 @@ class MarkupTest < Test::Unit::TestCase
       assert_equal "<p class='quote' style='padding:3px; border:1px solid red;'>#{@text}</p>", @markup.wrap(@text)
     end
 
+    should 'add the appended params inside the tag' do
+      @markup.append_attribute("<%= anything %>")
+      assert_equal "<p class='quote' style='padding:3px; border:1px solid red;'<%= anything %>>#{@text}</p>", @markup.wrap(@text)
+    end
+
     should 'not wrap twice if called twice' do
       assert_equal "<p class='quote' style='padding:3px; border:1px solid red;'>#{@text}</p>", @markup.wrap(@markup.wrap(@text))
     end
@@ -363,7 +368,7 @@ class MarkupTest < Test::Unit::TestCase
         @markup.params[:class] = 'two'
         assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')
       end
-      
+
       should 'not propagate appended params to duplicate' do
         @markup.append_param(:class, 'drop')
         assert_equal "<p class='one'>one</p>", @duplicate.wrap('one')

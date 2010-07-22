@@ -31,11 +31,17 @@ module Zafu
             out "<% #{node}.each do |#{var}| -%>"
           end
 
+
           with_context(:node => node.move_to(var, node.klass.first)) do
+            # The id set here should be used as prefix for sub-nodes to ensure uniqueness of generated DOM ids
             node.propagate_dom_scope!
+
             steal_and_eval_html_params_for(@markup, @params)
 
-            @markup.set_id(node.dom_id) if need_dom_id?
+            if need_dom_id?
+              set_dom_prefix
+              @markup.set_id(node.dom_id)
+            end
 
             out wrap(expand_with)
           end
