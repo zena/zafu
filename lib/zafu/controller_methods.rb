@@ -1,3 +1,5 @@
+require 'zafu/node_context'
+
 module Zafu
   module ControllerMethods
     def self.included(base)

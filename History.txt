@@ -1,3 +1,8 @@
+== 0.6.2 2010-07-22
+
+* Minor enhancements
+  * Requiring node_context from ControllerMethods to avoid loading problems
+
 == 0.6.1 2010-07-22
 
 * Minor enhancements
