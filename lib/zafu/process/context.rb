@@ -34,7 +34,11 @@ module Zafu
 
           with_context(:node => node.move_to(var, node.klass.first)) do
             # The id set here should be used as prefix for sub-nodes to ensure uniqueness of generated DOM ids
-            node.propagate_dom_scope!
+            if node.list_context?
+              # we are still in a list (example: previous context was [[Node]], current is [Node])
+            else
+              node.propagate_dom_scope!
+            end
 
             steal_and_eval_html_params_for(@markup, @params)
 

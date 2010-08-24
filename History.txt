@@ -1,3 +1,8 @@
+== 0.6.3 2010-08-24
+
+* Minor enhancement
+  * Fixed [each] for nested arrays
+
 == 0.6.2 2010-07-22
 
 * Minor enhancements
