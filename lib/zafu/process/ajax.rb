@@ -288,7 +288,6 @@ module Zafu
       # Set a unique DOM prefix to build unique ids in the page.
       def set_dom_prefix(node = self.node)
         @name ||= unique_name
-        raise if @name == 'list3'
         # TODO: should rebuild descendants list in parents...
         node.dom_prefix = @name
       end
