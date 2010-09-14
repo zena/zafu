@@ -20,7 +20,7 @@ module Zafu
       # Actual method resolution. The lookup first starts in the current helper. If nothing is found there, it
       # searches inside a 'helpers' module and finally looks into the current node_context.
       # If nothing is found at this stage, we prepend the method with the current node and start over again.
-      def safe_method_type(signature)
+      def safe_method_type(signature, receiver = nil)
         #puts [node.name, node.klass, signature].inspect
         super || get_method_type(signature, false)
       end
@@ -75,13 +75,13 @@ module Zafu
         # when we evaluate the method to see if we can use blocks as arguments.
         @rendering_block_owner = true
         code = method_with_arguments(method, params)
-        rubyless_expand RubyLess.translate(code, self)
+        rubyless_expand RubyLess.translate(self, code)
       ensure
         @rendering_block_owner = false
       end
 
       def set_markup_attr(markup, key, value)
-        value = value.kind_of?(RubyLess::TypedString) ? value : RubyLess.translate_string(value, self)
+        value = value.kind_of?(RubyLess::TypedString) ? value : RubyLess.translate_string(self, value)
         if value.literal
           markup.set_param(key, value.literal)
         else
@@ -90,7 +90,7 @@ module Zafu
       end
 
       def append_markup_attr(markup, key, value)
-        value = RubyLess.translate_string(value, self)
+        value = RubyLess.translate_string(self, value)
         if value.literal
           markup.append_param(key, value.literal)
         else
@@ -110,7 +110,7 @@ module Zafu
           return parser_continue("Missing attribute/eval parameter")
         end
 
-        RubyLess.translate(code, self)
+        RubyLess.translate(self, code)
       rescue RubyLess::Error => err
         return parser_continue(err.message, code)
       end
@@ -122,14 +122,21 @@ module Zafu
 
           keys.each do |key|
             next unless value = @params[key.to_sym]
-            res << ":#{key} => #{RubyLess.translate_string(value, self)}"
+            res << ":#{key} => #{RubyLess.translate_string(self, value)}"
           end
 
           res.empty? ? nil : res
         end
 
-        # block_owner should be set to true when we are resolving <r:xxx>...</r:xxx> or <div do='xxx'>...</div>
+        # Method resolution. The first matching method is returned. Order of evaluation is
+        # 1. find node_context (@page, @image, self)
+        # 2. set var (set_xxx = '...')
+        # 3. template helper methods
+        # 4. contextual node methods (var1.xxx)
+        # 5. contextual first node of list method ([...].first.xxx)
+        # 6. append block as argument (restart 1-5 with xxx(block_string))
         def get_method_type(signature, added_options = false)
+          node = self.node
           raise "#{node.klass.class}" unless node.klass.kind_of?(Array) || node.klass.kind_of?(Class)
 
           if type = node_context_from_signature(signature)
@@ -144,10 +151,11 @@ module Zafu
           elsif helper.respond_to?(:helpers) && type = safe_method_from(helper.helpers, signature)
             # Resolve by looking at the included helpers
             type
-          elsif node && node.klass.kind_of?(Class) && type = safe_method_from(node.klass, signature)
+          elsif node && !node.list_context? && type = safe_method_from(node.klass, signature, node)
+            # not a list_contex
             # Resolve node context methods: xxx.foo, xxx.bar
             type.merge(:method => "#{node.name}.#{type[:method]}")
-          elsif node && node.klass.kind_of?(Array) && type = safe_method_from(node.klass.first, signature)
+          elsif node && node.list_context? && type = safe_method_from(node.klass.first, signature, node)
             type.merge(:method => "#{node.name}.first.#{type[:method]}")
           elsif @rendering_block_owner && @blocks.first.kind_of?(String) && !added_options
             # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")
@@ -248,11 +256,11 @@ module Zafu
             if node.list_context?
               raise RubyLess::Error.new("Cannot use 'this' in list_context.")
             else
-              {:class => node.klass, :method => node.name}
+              node.opts.merge(:class => node.klass, :method => node.name)
             end
           elsif ivar[0..0] == '@' && klass = get_class(ivar[1..-1].capitalize)
             if node = self.node(klass)
-              {:class => node.klass, :method => node.name}
+              node.opts.merge(:class => node.klass, :method => node.name)
             else
               nil
             end
@@ -271,12 +279,12 @@ module Zafu
           end
         end
 
-        def safe_method_from(context, signature)
+        def safe_method_from(solver, signature, receiver = nil)
 
-          if context.respond_to?(:safe_method_type)
-            context.safe_method_type(signature)
+          if solver.respond_to?(:safe_method_type)
+            solver.safe_method_type(signature, receiver)
           else
-            RubyLess::SafeClass.safe_method_type_for(context, signature)
+            RubyLess::SafeClass.safe_method_type_for(solver, signature)
           end
         end
 

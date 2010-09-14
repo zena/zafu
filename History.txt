@@ -1,3 +1,10 @@
+== 0.7.0 2010-09-14
+
+* Major enhancements
+  * Using latest API from RubyLess and better NodeContext parameter transparency.
+  * Added get_type_from_query_select to resolve RubyLess with QueryBuilder select.
+  * Added 'opts' attribute to pass information in the compiler.
+
 == 0.6.3 2010-08-25
 
 * Minor enhancement

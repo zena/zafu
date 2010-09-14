@@ -13,12 +13,16 @@ module Zafu
     # it has a name or dom id defined ('main', 'related', 'list', etc).
     attr_writer :dom_prefix
 
-    def initialize(name, klass, up = nil)
-      @name, @klass, @up = name, klass, up
+    # Any kind of information that the compiler might need to use (QueryBuilder query used
+    # to fetch the node for example).
+    attr_reader :opts
+
+    def initialize(name, klass, up = nil, opts = {})
+      @name, @klass, @up, @opts = name, klass, up, opts
     end
 
-    def move_to(name, klass)
-      NodeContext.new(name, klass, self)
+    def move_to(name, klass, opts={})
+      NodeContext.new(name, klass, self, opts)
     end
 
     # Since the idiom to write the node context name is the main purpose of this class, it

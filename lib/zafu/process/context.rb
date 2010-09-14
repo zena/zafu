@@ -11,7 +11,7 @@ module Zafu
             out "<% #{node}.each_with_index do |#{var},#{var}_index| -%>"
 
             if join = @params[:join]
-              join = RubyLess.translate_string(join, self)
+              join = RubyLess.translate_string(self, join)
               #if join_clause = @params[:join_if]
               #  set_stored(Node, 'prev', "#{var}_prev")
               #  cond = get_test_condition(var, :test=>join_clause)
@@ -22,7 +22,7 @@ module Zafu
             end
 
             if alt_class = @params[:alt_class]
-              alt_class = RubyLess.translate_string(alt_class, self)
+              alt_class = RubyLess.translate_string(self, alt_class)
               alt_test = @params[:alt_reverse] == 'true' ? "(#{var}_max_index - #{var}_index) % 2 != 0" : "#{var}_index % 2 != 0"
               @markup.append_dyn_param(:class, "<%= #{alt_test} ? #{alt_class} : '' %>")
               @markup.tag ||= 'div'
@@ -32,7 +32,9 @@ module Zafu
           end
 
 
-          with_context(:node => node.move_to(var, node.klass.first)) do
+          with_context(:node => node.move_to(var, node.klass.first, :query => node.opts[:query])) do
+            # We pass the :query option for RubyLess resolution by using the QueryBuilder finder
+
             # The id set here should be used as prefix for sub-nodes to ensure uniqueness of generated DOM ids
             if node.list_context?
               # we are still in a list (example: previous context was [[Node]], current is [Node])
@@ -100,12 +102,12 @@ module Zafu
       def expand_with_finder(finder)
         if finder[:nil]
           open_node_context(finder, :form => nil) do # do not propagate :form
-            expand_if("#{var} = #{finder[:method]}", node.move_to(var, finder[:class]))
+            expand_if("#{var} = #{finder[:method]}", node.move_to(var, finder[:class], finder.merge(:nil => false)))
           end
         else
           res = ''
           res << "<% #{var} = #{finder[:method]} -%>"
-          open_node_context(finder, :node => node.move_to(var, finder[:class]), :form => nil) do
+          open_node_context(finder, :node => node.move_to(var, finder[:class], finder), :form => nil) do
             res << wrap(expand_with)
           end
           res

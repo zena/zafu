@@ -100,9 +100,9 @@ module Zafu
         if value =~ /^(.*)\#\{(.*)\}(.*)$/
           @params.delete(key)
           if $1 == '' && $3 == ''
-            append_dyn_param(key, "<%= #{RubyLess.translate($2, helper)} %>")
+            append_dyn_param(key, "<%= #{RubyLess.translate(helper, $2)} %>")
           else
-            append_dyn_param(key, "<%= #{RubyLess.translate_string(value, helper)} %>")
+            append_dyn_param(key, "<%= #{RubyLess.translate_string(helper, value)} %>")
           end
         end
       end

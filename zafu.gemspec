@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{zafu}
-  s.version = "0.6.3"
+  s.version = "0.7.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gaspard Bucher"]
-  s.date = %q{2010-08-25}
+  s.date = %q{2010-09-14}
   s.description = %q{Provides a powerful templating language based on xhtml for rails}
   s.email = %q{gaspard@teti.ch}
   s.extra_rdoc_files = [
@@ -90,16 +90,16 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<yamltest>, [">= 0.5.0"])
-      s.add_runtime_dependency(%q<rubyless>, [">= 0.5.0"])
+      s.add_runtime_dependency(%q<rubyless>, [">= 0.7.0"])
     else
       s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<yamltest>, [">= 0.5.0"])
-      s.add_dependency(%q<rubyless>, [">= 0.5.0"])
+      s.add_dependency(%q<rubyless>, [">= 0.7.0"])
     end
   else
     s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<yamltest>, [">= 0.5.0"])
-    s.add_dependency(%q<rubyless>, [">= 0.5.0"])
+    s.add_dependency(%q<rubyless>, [">= 0.7.0"])
   end
 end
 
