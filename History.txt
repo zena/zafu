@@ -1,3 +1,8 @@
+== 0.7.1 2010-09-14
+
+* Major enhancement
+  * Totally removed r_show fallback, clients should use process_unknown to declare methods to use.
+
 == 0.7.0 2010-09-14
 
 * Major enhancements
