@@ -32,12 +32,7 @@ module Zafu
           return rubyless_class_scope(@method)
         end
 
-        if code = @method[/^\#\{(.+)\}$/, 1]
-          params[:eval] = $1
-          r_show
-        else
-          rubyless_render(@method, params)
-        end
+        rubyless_render(@method, params)
       rescue RubyLess::NoMethodError => err
         parser_continue("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> for #{err.receiver_with_class}")
       rescue RubyLess::Error => err
