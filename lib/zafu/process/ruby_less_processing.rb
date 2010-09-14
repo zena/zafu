@@ -32,12 +32,7 @@ module Zafu
           return rubyless_class_scope(@method)
         end
 
-        if code = @method[/^\#\{(.+)\}$/, 1]
-          params[:eval] = $1
-          r_show
-        else
-          rubyless_render(@method, params)
-        end
+        rubyless_render(@method, params)
       rescue RubyLess::NoMethodError => err
         parser_continue("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> for #{err.receiver_with_class}")
       rescue RubyLess::Error => err
@@ -73,11 +68,21 @@ module Zafu
       def rubyless_render(method, params)
         # We need to set this here because we cannot pass options to RubyLess or get them back
         # when we evaluate the method to see if we can use blocks as arguments.
-        @rendering_block_owner = true
-        code = method_with_arguments(method, params)
-        rubyless_expand RubyLess.translate(self, code)
-      ensure
-        @rendering_block_owner = false
+        begin
+          @rendering_block_owner = true
+          code = method_with_arguments(method, params)
+          rubyless_expand RubyLess.translate(self, code)
+        rescue RubyLess::Error => err
+          if !@params.empty?
+            # try to use r_show without using params as arguments
+            params[:eval] = @method
+            r_show
+          else
+            raise err
+          end
+        ensure
+          @rendering_block_owner = false
+        end
       end
 
       def set_markup_attr(markup, key, value)
