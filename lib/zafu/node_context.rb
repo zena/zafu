@@ -31,10 +31,14 @@ module Zafu
       name
     end
 
+    def single_class
+      @single_class ||= Array(klass).flatten.first
+    end
+
     # Return true if the NodeContext represents an element of the given type. We use 'will_be' because
     # it is equivalent to 'is_a', but for future objects (during rendering).
     def will_be?(type)
-      klass.kind_of?(Array) ? klass.first.ancestors.include?(type) : klass.ancestors.include?(type)
+      single_class.ancestors.include?(type)
     end
 
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
@@ -43,16 +47,15 @@ module Zafu
     # You can also use an 'after_class' parameter to move up in the current object's class hierarchy to get
     # ivar name (see #master_class).
     def as_main(after_class = nil)
-      klass = after_class ? master_class(after_class) : Array(self.klass).first
-      NodeContext.new("@#{klass.to_s.underscore}", Array(self.klass).first)
+      klass = after_class ? master_class(after_class) : single_class
+      NodeContext.new("@#{klass.to_s.underscore}", single_class)
     end
 
     # Find the class just afer 'after_class' in the class hierarchy.
     # For example if we have Dog < Mamal < Animal < Creature,
     # master_class(Creature) would return Animal
     def master_class(after_class)
-      klass = self.klass
-      klass = klass.first if klass.kind_of?(Array)
+      klass = single_class
       begin
         up = klass.superclass
         return klass if up == after_class
@@ -95,16 +98,16 @@ module Zafu
     end
 
     def get(klass)
-      if list_context?
-        if self.klass.first <= klass
-          NodeContext.new("#{self.name}.first", self.klass.first)
-        elsif @up
-          @up.get(klass)
-        else
-          nil
+      if single_class <= klass
+        return self unless list_context?
+
+        res_class = self.klass
+        method = self.name
+        while res_class.kind_of?(Array)
+          method = "#{method}.first"
+          res_class = res_class.first
         end
-      elsif self.klass <= klass
-        return self
+        move_to(method, res_class)
       elsif @up
         @up.get(klass)
       else
@@ -130,7 +133,7 @@ module Zafu
     # FIXME: just use klass.to_s (so that we can do clever things with 'to_s')
     def class_name
       if list_context?
-        klass = @klass.first
+        klass = single_class
         "[#{(klass.name.blank? ? klass.superclass : klass).name}]"
       else
         (@klass.name.blank? ? @klass.superclass : @klass).name

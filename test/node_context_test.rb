@@ -229,6 +229,35 @@ class NodeContextTest < Test::Unit::TestCase
     end
   end
 
+  context 'In a deeply nested list context' do
+    setup do
+      @grandma = NodeContext.new('@page', SubPage)
+      @mother = @grandma.move_to('@comment', Comment)
+    end
+
+    subject do
+      @mother.move_to('list', [[[Page]]])
+    end
+
+    should 'find the context and resolve with first' do
+      assert context = subject.get(Page)
+      assert_equal 'list.first.first.first', context.name
+      assert_equal Page, context.klass
+    end
+
+    should 'return parent on up with class' do
+      assert_equal @grandma, subject.up(Page)
+    end
+
+    should 'return true on will_be with the same class' do
+      assert subject.will_be?(Page)
+    end
+
+    should 'return class on master_class' do
+      assert_equal Page, subject.master_class(ActiveRecord::Base)
+    end
+  end
+
   context 'Generating a dom id' do
     context 'in a blank context' do
       subject do
