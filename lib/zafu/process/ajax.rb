@@ -289,6 +289,7 @@ module Zafu
       def set_dom_prefix(node = self.node)
         @name ||= unique_name
         # TODO: should rebuild descendants list in parents...
+        #puts [parent.method, method, @context[:name], @name].inspect
         node.dom_prefix = @name
       end
 
@@ -320,6 +321,20 @@ module Zafu
           key + '1'
         end
       end
+
+      protected
+
+        def need_ajax?(each_block)
+          return false unless each_block
+          # Inline editable
+          each_block.descendant('edit') ||
+          # Ajax add
+          descendant('add') ||
+          # List is reloaded from the 'add_document' popup
+          descendant('add_document') ||
+          # We use 'each' as block instead of the declared 'block' or 'drop'
+          ['block', 'drop'].include?(each_block.single_child_method)
+        end
 
       private
 
@@ -356,20 +371,6 @@ module Zafu
           end
 
           out helper.save_erb_to_url(template, cont[:saved_template])
-        end
-
-        def need_ajax?(each_block)
-          return false unless each_block
-          # Inline editable
-          each_block.descendant('edit') ||
-          # Ajax add
-          descendant('add') ||
-          # List is reloaded from the 'add_document' popup
-          descendant('add_document') ||
-          # We use 'each' as block to render swap
-          (descendant('swap') && descendant('swap').parent.method != 'block') ||
-          # We use 'each' as block instead of the declared 'block' or 'drop'
-          ['block', 'drop'].include?(each_block.single_child_method)
         end
 
         #template = expand_block(self, :)
