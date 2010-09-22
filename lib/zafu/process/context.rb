@@ -35,18 +35,16 @@ module Zafu
           with_context(:node => node.move_to(var, node.klass.first, :query => node.opts[:query])) do
             # We pass the :query option for RubyLess resolution by using the QueryBuilder finder
 
+            steal_and_eval_html_params_for(@markup, @params)
             # The id set here should be used as prefix for sub-nodes to ensure uniqueness of generated DOM ids
             if node.list_context?
               # we are still in a list (example: previous context was [[Node]], current is [Node])
             else
               node.propagate_dom_scope!
-            end
 
-            steal_and_eval_html_params_for(@markup, @params)
-
-            if need_dom_id?
-              set_dom_prefix
-              @markup.set_id(node.dom_id)
+              if need_dom_id?
+                @markup.set_id(node.dom_id)
+              end
             end
 
             out wrap(expand_with)
