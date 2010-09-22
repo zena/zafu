@@ -1,7 +1,8 @@
-== 0.7.2 2010-09-14
+== 0.7.3 2010-09-14
 
 * Minor enhancement
   * Better processing of nested arrays in node_context.
+  * Support to overwrite need_ajax? method
 
 == 0.7.1 2010-09-14
 
