@@ -149,8 +149,10 @@ module Zafu
           elsif node && !node.list_context? && type = safe_method_from(node.klass, signature, node)
             # not a list_contex
             # Resolve node context methods: xxx.foo, xxx.bar
+            type = type[:class].call(self, signature) if type[:class].kind_of?(Proc)
             type.merge(:method => "#{node.name}.#{type[:method]}")
           elsif node && node.list_context? && type = safe_method_from(node.klass.first, signature, node)
+            type = type[:class].call(self, signature) if type[:class].kind_of?(Proc)
             type.merge(:method => "#{node.name}.first.#{type[:method]}")
           elsif @rendering_block_owner && @blocks.first.kind_of?(String) && !added_options
             # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")

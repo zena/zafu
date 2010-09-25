@@ -1,3 +1,8 @@
+== 0.7.4 2010-09-25
+
+* Minor enhancement
+  * Fixed processing of 'Proc' based RubyLess declarations.
+
 == 0.7.3 2010-09-14
 
 * Minor enhancement
