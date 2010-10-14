@@ -224,6 +224,8 @@ module Zafu
         end
 
         def rubyless_class_scope(class_name)
+          return parser_error("Cannot scope class in list (use each before filtering).") if node.list_context?
+
           # capital letter ==> class conditional
           klass = Module.const_get(class_name)
           if klass.ancestors.include?(node.klass)

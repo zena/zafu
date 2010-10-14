@@ -121,6 +121,7 @@ module Zafu
        :@out_post => @out_post,
        :@params   => @params.dup,
        :@method   => @method,
+       :@var      => @var,
       }
     end
 

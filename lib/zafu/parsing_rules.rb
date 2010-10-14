@@ -92,7 +92,7 @@ module Zafu
     end
 
     def remove_erb(text)
-      text.gsub('<%', '&lt;%').gsub('%>', '%&gt;')
+      text.gsub('<%', '&lt;%').gsub('%>', '%&gt;').gsub(/<\Z/, '&lt;')
     end
 
     def unescape_ruby

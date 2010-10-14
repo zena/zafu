@@ -7,6 +7,11 @@ include_with_part:
   src: "<r:include template='/some/template'><r:with part='a'/><r:with part='b'>new b:<r:include template='/some/template' part='a'/></r:with></r:include>"
   tem: "<div id='b'>new b:<div id='a'>a</div></div>"
 
+include_missing_part:
+  # part 'a' is moved around
+  src: "<r:include template='/some/template' part='bad'/>"
+  tem: "<span class='parser_error'><span class='method'>include</span> <span class='message'>'bad' not found in template '/some/template'</span></span>"
+
 missing_template:
   src: "<r:include template='Foo'/>"
   tem: "/template 'Foo' not found/"
