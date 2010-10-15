@@ -78,7 +78,7 @@ module Zafu
       def set_markup_attr(markup, key, value)
         value = value.kind_of?(RubyLess::TypedString) ? value : RubyLess.translate_string(self, value)
         if value.literal
-          markup.set_param(key, value.literal)
+          markup.set_param(key, form_quote(value.literal))
         else
           markup.set_dyn_param(key, "<%= #{value} %>")
         end
@@ -87,7 +87,7 @@ module Zafu
       def append_markup_attr(markup, key, value)
         value = RubyLess.translate_string(self, value)
         if value.literal
-          markup.append_param(key, value.literal)
+          markup.append_param(key, form_quote(value.literal))
         else
           markup.append_dyn_param(key, "<%= #{value} %>")
         end
@@ -210,7 +210,7 @@ module Zafu
         def rubyless_expand(res)
           if res.klass == String && !@blocks.detect {|b| !b.kind_of?(String)}
             if lit = res.literal
-              out lit
+              out erb_escape(lit)
             else
               out "<%= #{res} %>"
             end

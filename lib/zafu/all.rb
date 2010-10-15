@@ -5,6 +5,7 @@ require 'zafu/process/ruby_less_processing'
 require 'zafu/process/context'
 require 'zafu/process/conditional'
 require 'zafu/process/forms'
+require 'zafu/security'
 
 module Zafu
   All = [
@@ -15,5 +16,6 @@ module Zafu
     Zafu::Process::RubyLessProcessing,
     Zafu::Process::Ajax,
     Zafu::Process::Forms,
+    Zafu::Security,
   ]
 end

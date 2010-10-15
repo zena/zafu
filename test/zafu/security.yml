@@ -17,3 +17,7 @@ trick_erb:
 include_erb:
   src: "include: <r:include template='/nasty_erb'/>"
   tem: "include: this &lt;% puts \"could be\" %&gt; nasty"
+
+rubyless_make_erb:
+  src: "<p foo='#{\"<\"}%= xx'/>"
+  tem: "<p foo='&lt;%= xx'></p>"

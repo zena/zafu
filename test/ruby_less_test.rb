@@ -3,6 +3,7 @@ require 'test_helper'
 class ZafuRubyLessTest < Test::Unit::TestCase
   include RubyLess
   def self.process_unknown(callback); end;
+  include Zafu::Security
   include Zafu::Process::RubyLessProcessing
   def helper; self.class; end
   safe_method :one => {:class => String, :method => "main_one"}
