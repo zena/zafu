@@ -63,7 +63,7 @@ module Zafu
           res << wrap(expand_with)
         end
 
-        res << expand_with(:in_if => true, :only => /^[A-Z]|else|elsif|when/, :markup => alt_markup)
+        res << expand_with(:in_if => true, :only => %w{else elsif when}, :markup => alt_markup)
         res << "<% end -%>"
         res
       end

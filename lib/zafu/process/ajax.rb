@@ -266,12 +266,13 @@ module Zafu
       # Block visibility of descendance with 'do_list'.
       def public_descendants
         all = super
-        if ['context', 'each', 'block'].include?(self.method)
+        if ['context', 'each', 'block'].include?(method)
           # do not propagate 'form',etc up
           all.reject do |k,v|
             ['form','unlink'].include?(k)
           end
-        elsif ['if', 'case'].include?(self.method)
+        elsif ['if', 'case'].include?(method) || (method =~ /^[A-Z]/)
+          # conditional
           all.reject do |k,v|
             ['else', 'elsif', 'when'].include?(k)
           end
