@@ -28,8 +28,12 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def rubyless_eval(params = @params)
-        if @method =~ /^[A-Z]\w+$/
-          return rubyless_class_scope(@method)
+        if @method =~ /^([A-Z]\w+?)(Class|)$/
+          if $2.blank?
+            return rubyless_class_scope(@method)
+          else
+            return expand_with_finder(:method => "VirtualClass['#{$1}']", :nil => true, :class => VirtualClass)
+          end
         end
 
         rubyless_render(@method, params)
@@ -132,7 +136,6 @@ module Zafu
         # 6. append block as argument (restart 1-5 with xxx(block_string))
         def get_method_type(signature, added_options = false)
           node = self.node
-          raise "#{node.klass.class}" unless node.klass.kind_of?(Array) || node.klass.kind_of?(Class)
 
           if type = node_context_from_signature(signature)
             # Resolve self, @page, @node
@@ -151,6 +154,9 @@ module Zafu
             # Resolve node context methods: xxx.foo, xxx.bar
             type = type[:class].call(self, signature) if type[:class].kind_of?(Proc)
             type.merge(:method => "#{node.name}.#{type[:method]}")
+          elsif node && node.list_context? && type = safe_method_from(Array, signature, node)
+            type = type[:class].call(self, signature) if type[:class].kind_of?(Proc)
+            type.merge(:method => "#{node.name}.#{type[:method]}")
           elsif node && node.list_context? && type = safe_method_from(node.klass.first, signature, node)
             type = type[:class].call(self, signature) if type[:class].kind_of?(Proc)
             type.merge(:method => "#{node.name}.first.#{type[:method]}")
@@ -166,8 +172,8 @@ module Zafu
           elsif node && !added_options
             # Try prepending current node before arguments: link("foo") becomes link(var1, "foo")
             signature_with_node = signature.dup
-            signature_with_node.insert(1, node.klass)
-            if type = get_method_type(signature_with_node, added_options = true)
+            signature_with_node.insert(1, node.real_class) # node.klass ?
+            if type = get_method_type(signature_with_node, true)
               type.merge(:prepend_args => RubyLess::TypedString.new(node.name, :class => node.klass))
             else
               nil

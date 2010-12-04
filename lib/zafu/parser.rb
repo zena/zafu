@@ -238,6 +238,7 @@ module Zafu
       else
         @context = context
       end
+      # FIXME: replace with array and join (faster)
       @result   = ""
       @out_post = ""
 

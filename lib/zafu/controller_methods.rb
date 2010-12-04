@@ -14,8 +14,6 @@ module Zafu
               t.previously_last_modified = nil
             # end
             render_for_text @template.render(:file => template_path, :locals => locals, :layout => layout), status
-          rescue => err
-            puts err.backtrace.join("\n")
           end
           alias_method_chain :render_for_file, :rebuild
         end

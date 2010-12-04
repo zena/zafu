@@ -35,10 +35,34 @@ module Zafu
       @single_class ||= Array(klass).flatten.first
     end
 
+    def node_klass?
+      single_class.kind_of?(VirtualClass)
+    end
+
+    def real_single_class
+      @real_single_class ||= if node_klass?
+        single_class.real_class
+      else
+        single_class
+      end
+    end
+
+    def real_class
+      @real_class ||= if node_klass?
+        klass.kind_of?(Array) ? [klass.first.real_class] : klass.real_class
+      else
+        klass
+      end
+    end
+
     # Return true if the NodeContext represents an element of the given type. We use 'will_be' because
     # it is equivalent to 'is_a', but for future objects (during rendering).
     def will_be?(type)
-      single_class.ancestors.include?(type)
+      if node_klass?
+        real_single_class <= type
+      else
+        single_class <= type
+      end
     end
 
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
@@ -65,6 +89,7 @@ module Zafu
 
     # Generate a unique DOM id for this element based on dom_scopes defined in parent contexts.
     def dom_id(opts = {})
+      dom_prefix = opts[:dom_prefix] || self.dom_prefix
       options = {:list => true, :erb => true}.merge(opts)
 
       if options[:erb]
@@ -98,7 +123,7 @@ module Zafu
     end
 
     def get(klass)
-      if single_class <= klass
+      if real_single_class <= klass
         return self unless list_context?
 
         res_class = self.klass
@@ -129,14 +154,12 @@ module Zafu
       class_name.to_s.underscore
     end
 
-    # Return the class name or the superclass name if the current class is an anonymous class.
-    # FIXME: just use klass.to_s (so that we can do clever things with 'to_s')
+    # Return the 'real' class name or the superclass name if the current class is an anonymous class.
     def class_name
       if list_context?
-        klass = single_class
-        "[#{(klass.name.blank? ? klass.superclass : klass).name}]"
+        "[#{real_single_class}]"
       else
-        (@klass.name.blank? ? @klass.superclass : @klass).name
+        real_single_class.name
       end
     end
 

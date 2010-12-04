@@ -4,6 +4,7 @@
   * Fixed double rendering of zafu block (store) and @var usage.
   * Fixed security hole where include could be used to create erb.
   * Fixed a bug where class conditional in [if] would not render correctly.
+  * Better handling of nested dom_id when used with ajax (draggable).
 
 == 0.7.4 2010-09-25
 

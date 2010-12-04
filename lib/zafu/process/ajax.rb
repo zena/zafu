@@ -208,14 +208,15 @@ module Zafu
           out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
           # New object to render form.
+
           # FIXME: use 'klass' param in r_add or r_form instead of current list content.
-          new_node = node.move_to("#{var}_new", [node.klass].flatten.first)
+          new_node = node.move_to("#{var}_new", [node.klass].flatten.first, :new_record => true)
 
           if new_node.will_be?(Node)
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
 
             # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
-            out "<% if #{new_node} = secure(Node) { Node.new_from_class('#{new_node.class_name}') } -%>"
+            out "<% if #{new_node} = secure(Node) { Node.new_node('class' => '#{new_node.klass}') } -%>"
           else
             out "<% if #{new_node} = #{new_node.class_name}.new -%>"
           end
