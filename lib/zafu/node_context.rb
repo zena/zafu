@@ -22,7 +22,7 @@ module Zafu
     end
 
     def move_to(name, klass, opts={})
-      NodeContext.new(name, klass, self, opts)
+      self.class.new(name, klass, self, opts)
     end
 
     # Since the idiom to write the node context name is the main purpose of this class, it
@@ -35,34 +35,10 @@ module Zafu
       @single_class ||= Array(klass).flatten.first
     end
 
-    def node_klass?
-      single_class.kind_of?(VirtualClass)
-    end
-
-    def real_single_class
-      @real_single_class ||= if node_klass?
-        single_class.real_class
-      else
-        single_class
-      end
-    end
-
-    def real_class
-      @real_class ||= if node_klass?
-        klass.kind_of?(Array) ? [klass.first.real_class] : klass.real_class
-      else
-        klass
-      end
-    end
-
     # Return true if the NodeContext represents an element of the given type. We use 'will_be' because
     # it is equivalent to 'is_a', but for future objects (during rendering).
     def will_be?(type)
-      if node_klass?
-        real_single_class <= type
-      else
-        single_class <= type
-      end
+      single_class <= type
     end
 
     # Return a new node context that corresponds to the current object when rendered alone (in an ajax response or
@@ -72,7 +48,7 @@ module Zafu
     # ivar name (see #master_class).
     def as_main(after_class = nil)
       klass = after_class ? master_class(after_class) : single_class
-      NodeContext.new("@#{klass.to_s.underscore}", single_class)
+      self.class.new("@#{klass.to_s.underscore}", single_class)
     end
 
     # Find the class just afer 'after_class' in the class hierarchy.
@@ -123,7 +99,7 @@ module Zafu
     end
 
     def get(klass)
-      if real_single_class <= klass
+      if single_class <= klass
         return self unless list_context?
 
         res_class = self.klass
@@ -156,10 +132,14 @@ module Zafu
 
     # Return the 'real' class name or the superclass name if the current class is an anonymous class.
     def class_name
+      klass = single_class
+      while klass.name == ''
+        klass = klass.superclass
+      end
       if list_context?
-        "[#{real_single_class}]"
+        "[#{klass}]"
       else
-        real_single_class.name
+        klass.name
       end
     end
 

@@ -121,7 +121,7 @@ class NodeContextTest < Test::Unit::TestCase
       end
     end # with a sub-class
 
-    context 'with an anonymoys sub-class' do
+    context 'with an anonymous sub-class' do
       subject do
         NodeContext.new('@node', Class.new(Page))
       end
@@ -129,7 +129,7 @@ class NodeContextTest < Test::Unit::TestCase
       should 'return class on class_name' do
         assert_equal 'Page', subject.class_name
       end
-    end # with an anonymoys sub-class
+    end # with an anonymous sub-class
   end
 
   context 'In a sub-context' do

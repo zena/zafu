@@ -1,4 +1,4 @@
-== 0.7.5
+== 0.7.5 2011-01-15
 
 * Enhancements
   * Fixed double rendering of zafu block (store) and @var usage.
@@ -6,6 +6,7 @@
   * Fixed a bug where class conditional in [if] would not render correctly.
   * Better handling of nested dom_id when used with ajax (draggable).
   * Adapted RubyLess resolution to new Proc calls (RubyLess 0.8.1).
+  * Removed some Zena specific code.
 
 == 0.7.4 2010-09-25
 

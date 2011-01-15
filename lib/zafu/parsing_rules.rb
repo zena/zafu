@@ -186,17 +186,18 @@ module Zafu
 
     def scan_tag(opts={})
       #puts "TAG(#{@method}): [#{@text}]"
-      if @text =~ /\A<r:([\w_]+)([^>]*?)(\/?)>/
+      if @text =~ /\A<r:([\w_]+\??)([^>]*?)(\/?)>/
         #puts "RTAG:#{$~.to_a.inspect}" # ztag
         eat $&
         opts.merge!(:method=>$1, :params=>$2)
         opts.merge!(:text=>'') if $3 != ''
         make(:void, opts)
-      elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('([^>]*?[^\\]|)'|"([^>]*?[^\\]|)")([^>]*?)(\/?)>/
-        #puts "DO:#{($4||$5).inspect}" # do tag
+      #elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('([^>]*?[^\\]|)'|"([^>]*?[^\\]|)")([^>]*?)(\/?)>/
+      elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('|")([^\3]*?[^\\])\3([^>]*?)(\/?)>/
+        #puts "DO:#{$~.to_a.inspect}" # do tag
         eat $&
-        opts.merge!(:method=>($4||$5), :html_tag=>$1, :html_tag_params=>$2, :params=>$6)
-        opts.merge!(:text=>'') if $7 != ''
+        opts.merge!(:method=> $4, :html_tag=>$1, :html_tag_params=>$2, :params=>$5)
+        opts.merge!(:text=>'') if $6 != ''
         make(:void, opts)
       elsif @options[:form] && @text =~ /\A<(input|select|textarea|form)([^>]*?)(\/?)>/
         eat $&
@@ -219,7 +220,7 @@ module Zafu
         opts.merge!(:method=>'void', :html_tag=>$1, :params=>{:id => $3[1..-2]}, :html_tag_params=>"#{$2}id=#{$3}#{$4}")
         opts.merge!(:text=>'') if $5 != ''
         make(:void, opts)
-      elsif @end_tag && @text =~ /\A<#{@end_tag}([^>]*?)(\/?)>/
+      elsif @end_tag && @text =~ /\A<#{@end_tag.gsub('?', '\\?')}([^>]*?)(\/?)>/
         #puts "SAME:#{$~.to_a.inspect}" # simple html tag same as end_tag
         flush $&
         @end_tag_count += 1 unless $2 == '/'
@@ -242,10 +243,11 @@ module Zafu
 
     def scan_asset
       # puts "ASSET(#{object_id}) [#{@text}]"
-      if @text =~ /\A<(\w*)([^>]*?)(\/?)>/
+      if @text =~ /\A<(\w+)([^>]*?)(\/?)>/
         eat $&
         @method = 'rename_asset'
-        @markup.tag = @end_tag = $1
+        @markup.tag = $1
+        @end_tag = $1
         closed = ($3 != '')
         @params = Markup.parse_params($2)
         if closed
@@ -263,7 +265,7 @@ module Zafu
     end
 
     def scan_inside_asset
-      if @text =~ /\A(.*?)<\/#{@end_tag}>/m
+      if @text =~ /\A(.*?)<\/#{@end_tag.gsub('?', '\\?')}>/m
         eat $&
         store $1
         leave(:asset)

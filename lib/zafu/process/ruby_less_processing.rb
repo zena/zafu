@@ -28,12 +28,8 @@ module Zafu
       # Resolve unknown methods by using RubyLess in the current compilation context (the
       # translate method in RubyLess will call 'safe_method_type' in this module).
       def rubyless_eval(params = @params)
-        if @method =~ /^([A-Z]\w+?)(Class|)$/
-          if $2.blank?
-            return rubyless_class_scope(@method)
-          else
-            return expand_with_finder(:method => "VirtualClass['#{$1}']", :nil => true, :class => VirtualClass)
-          end
+        if @method =~ /^([A-Z]\w+?)\?$/
+          return rubyless_class_scope($1)
         end
 
         rubyless_render(@method, params)
@@ -153,13 +149,14 @@ module Zafu
             # not a list_contex
             # Resolve node context methods: xxx.foo, xxx.bar
             type = type[:class].call(self, node.klass, signature) if type[:class].kind_of?(Proc)
-            type.merge(:method => "#{node.name}.#{type[:method]}")
+            type.merge(:receiver => RubyLess::TypedString.new(node.name, :class => node.klass))
           elsif node && node.list_context? && type = safe_method_from(Array, signature, node)
+            # FIXME: why do we need this here ? Remove with related code in zafu_safe_definitions ?
             type = type[:class].call(self, node.klass, signature) if type[:class].kind_of?(Proc)
-            type.merge(:method => "#{node.name}.#{type[:method]}")
+            type.merge(:receiver => RubyLess::TypedString.new(node.name, :class => Array, :elem => node.klass.first))
           elsif node && node.list_context? && type = safe_method_from(node.klass.first, signature, node)
             type = type[:class].call(self, node.klass, signature) if type[:class].kind_of?(Proc)
-            type.merge(:method => "#{node.name}.first.#{type[:method]}")
+            type.merge(:receiver => RubyLess::TypedString.new("#{node.name}.first", :class => node.klass.first))
           elsif @rendering_block_owner && @blocks.first.kind_of?(String) && !added_options
             # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")
             signature_with_block = signature.dup
