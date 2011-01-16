@@ -1,3 +1,16 @@
+use_block_as_param:
+  src: "<r:raw>this and thatn</r:raw>"
+  tem: "<%= raw(\"this and thatn\") %>"
+
 out_post:
   src: "<r:link post_string='Monday'/>"
   tem: "<%= make_link(@node) %>Monday"
+
+empty_do:
+  src: "this is <li do=''>not</li>good"
+  tem: "this is good"
+
+do_with_escaped_quote:
+  src: "<li do='raw(\'blah\')'>blah</li>"
+  tem: "<li><%= raw(\"blah\") %></li>"
+

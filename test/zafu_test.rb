@@ -18,6 +18,7 @@ class ZafuTest < Test::Unit::TestCase
   end
   safe_method :dum  => Dummy
   safe_method :dum2 => {:class => Dummy, :nil => true}
+  safe_method [:raw, String] => String
 
   context 'Compilation in a model' do
     setup do

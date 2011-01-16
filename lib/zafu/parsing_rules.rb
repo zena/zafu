@@ -50,13 +50,16 @@ module Zafu
       if @params =~ /\A([^>]*?)do\s*=('|")([^\2]*?[^\\])\2([^>]*)\Z/
         #puts $~.to_a.inspect
         # we have a sub 'do'
+        params = $1
+        sub_params = $4
+        sub_method = $3.gsub("\\#{$2}", $2)
 
-        @params = Markup.parse_params($1)
+        @params = Markup.parse_params(params)
 
         # We need this flag to detect cases cases like <r:with part='list' do='other list finder'/>
         @sub_do = true
 
-        opts = {:method=>$3, :params=>$4}
+        opts = {:method => sub_method, :params => sub_params}
 
         # the matching zafu tag will be parsed by the last 'do', we must inform it to halt properly :
         opts[:end_tag] = @end_tag
@@ -193,11 +196,12 @@ module Zafu
         opts.merge!(:text=>'') if $3 != ''
         make(:void, opts)
       #elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('([^>]*?[^\\]|)'|"([^>]*?[^\\]|)")([^>]*?)(\/?)>/
-      elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('|")([^\3]*?[^\\])\3([^>]*?)(\/?)>/
+      elsif @text =~ /\A<(\w+)([^>]*?)do\s*=('|")([^\3]*?[^\\]|)\3([^>]*?)(\/?)>/
         #puts "DO:#{$~.to_a.inspect}" # do tag
         eat $&
-        opts.merge!(:method=> $4, :html_tag=>$1, :html_tag_params=>$2, :params=>$5)
-        opts.merge!(:text=>'') if $6 != ''
+        reg = $~
+        opts.merge!(:method=> reg[4].gsub("\\#{reg[3]}", reg[3]), :html_tag=>reg[1], :html_tag_params=>reg[2], :params=>reg[5])
+        opts.merge!(:text=>'') if reg[6] != ''
         make(:void, opts)
       elsif @options[:form] && @text =~ /\A<(input|select|textarea|form)([^>]*?)(\/?)>/
         eat $&

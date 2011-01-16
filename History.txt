@@ -1,3 +1,8 @@
+== 0.7.6
+
+* Enhancements
+  * Enabled empty do (ignore method)
+  
 == 0.7.5 2011-01-15
 
 * Enhancements
