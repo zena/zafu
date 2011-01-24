@@ -115,7 +115,7 @@ module Zafu
             # f.xxx
             yield(opts.merge(:in_form => true))
           # close form
-          out opts[:form_helper] ? "<% end -%>" : '</form>'
+          out opts[:form_helper] ? "<% end %>" : '</form>'
         end
 
         def form_error_messages(f)

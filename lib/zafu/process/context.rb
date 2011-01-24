@@ -7,8 +7,8 @@ module Zafu
       def r_each
         if node.list_context?
           if @params[:alt_class] || @params[:join]
-            out "<% #{var}_max_index = #{node}.size - 1 -%>" if @params[:alt_reverse]
-            out "<% #{node}.each_with_index do |#{var},#{var}_index| -%>"
+            out "<% #{var}_max_index = #{node}.size - 1 %>" if @params[:alt_reverse]
+            out "<% #{node}.each_with_index do |#{var},#{var}_index| %>"
 
             if join = @params[:join]
               join = RubyLess.translate_string(self, join)
@@ -28,7 +28,7 @@ module Zafu
               @markup.tag ||= 'div'
             end
           else
-            out "<% #{node}.each do |#{var}| -%>"
+            out "<% #{node}.each do |#{var}| %>"
           end
 
 
@@ -49,7 +49,7 @@ module Zafu
 
             out wrap(expand_with)
           end
-          out "<% end -%>"
+          out "<% end %>"
         else
           out expand_with
         end
@@ -104,7 +104,7 @@ module Zafu
           end
         else
           res = ''
-          res << "<% #{var} = #{finder[:method]} -%>"
+          res << "<% #{var} = #{finder[:method]} %>"
           open_node_context(finder, :node => node.move_to(var, finder[:class], finder), :form => nil) do
             res << wrap(expand_with)
           end

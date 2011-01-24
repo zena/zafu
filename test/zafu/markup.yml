@@ -1,4 +1,4 @@
 
 double_do_should_not_propagate_markup:
   src: "<div id='top' do='root' do='link'/>"
-  tem: "<% if var1 = @node.root -%><div id='top'><%= make_link(var1) %></div><% end -%>"
+  tem: "<% if var1 = @node.root %><div id='top'><%= make_link(var1) %></div><% end %>"

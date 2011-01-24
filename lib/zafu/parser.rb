@@ -13,9 +13,9 @@ module Zafu
     # 'after_wrap' is called by the 'wrap' method from within the method handler, 'after_process' is called
     # at the very end. Example:
     #
-    #   <% if var = Node.all -%>                                  | <---
-    #     <li>...</li>               <--- content for after_wrap  | <---  content for after_process
-    #   <% end -%>                                                | <---
+    #   <% if var = Node.all %>                                  | <---
+    #     <li>...</li>              <--- content for after_wrap  | <---  content for after_process
+    #   <% end %>                                                | <---
     #
 
 

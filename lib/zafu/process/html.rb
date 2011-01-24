@@ -116,6 +116,12 @@ module Zafu
         expand_with
       end
 
+      def steal_and_eval_html_params_for(markup, params)
+        markup.steal_keys.each do |key|
+          next unless value = params.delete(key)
+          append_markup_attr(markup, key, value)
+        end
+      end
       #def r_form
       #  res   = "<#{@markup.tag}#{params_to_html(@params)}"
       #  @markup.done = true

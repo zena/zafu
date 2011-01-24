@@ -33,7 +33,7 @@ module Zafu
 
           # 1. Render inline
           #                                                                                                                 assign [] to var
-          out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) -%>"
+          out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
           # The list is not empty or we have enough rights to add new elements.
           set_dom_prefix
 
@@ -76,7 +76,7 @@ module Zafu
 
             store_block(form_block, cont)
           end
-          out "<% end -%>"
+          out "<% end %>"
         else
           super
         end
@@ -101,17 +101,17 @@ module Zafu
         #else
         #  # no form, render, edit and add are not ajax
         #  if descendant('add') || descendant('add_document')
-        #    out "<% if (#{list_var} = #{list_finder}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{list_var}=[]) -%>"
+        #    out "<% if (#{list_var} = #{list_finder}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{list_var}=[]) %>"
         #  elsif list_finder != 'nil'
-        #    out "<% if #{list_var} = #{list_finder} -%>"
+        #    out "<% if #{list_var} = #{list_finder} %>"
         #  else
-        #    out "<% if nil -%>"
+        #    out "<% if nil %>"
         #  end
         #
         #
         #  out render_html_tag(expand_with(:list=>list_var, :in_if => false))
         #  out expand_with(:in_if=>true, :only=>['elsif', 'else'], :html_tag => @html_tag, :html_tag_params => @html_tag_params)
-        #  out "<% end -%>"
+        #  out "<% end %>"
         #end
       end
 
@@ -159,7 +159,7 @@ module Zafu
 
           link = wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
 
-          out "<% if #{node}.can_write? -%>#{link}<% end -%>"
+          out "<% if #{node}.can_write? %>#{link}<% end %>"
         end
 
         #if @context[:template_url]
@@ -179,9 +179,9 @@ module Zafu
         return '' if @context[:make_form]
 
         if node.will_be?(Comment)
-          out "<% if #{node.up(Node)}.can_comment? -%>"
+          out "<% if #{node.up(Node)}.can_comment? %>"
         else
-          out "<% if #{node.up(Node)}.can_write? -%>"
+          out "<% if #{node.up(Node)}.can_write? %>"
         end
 
         unless descendant('add_btn')
@@ -216,9 +216,9 @@ module Zafu
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
 
             # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
-            out "<% if #{new_node} = secure(Node) { Node.new_node('class' => '#{new_node.klass}') } -%>"
+            out "<% if #{new_node} = secure(Node) { Node.new_node('class' => '#{new_node.klass}') } %>"
           else
-            out "<% if #{new_node} = #{new_node.class_name}.new -%>"
+            out "<% if #{new_node} = #{new_node.class_name}.new %>"
           end
 
           form_block = @context[:form]
@@ -236,13 +236,13 @@ module Zafu
             # Node context = new node
             :node         => new_node
           )
-          out "<% end -%>"
+          out "<% end %>"
         else
           # no ajax
           @markup.append_param(:class, 'btn_add') if @markup.tag
           out wrap(expand_with)
         end
-        out "<% end -%>"
+        out "<% end %>"
       end
 
       def r_add_btn

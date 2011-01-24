@@ -13,4 +13,3 @@ empty_do:
 do_with_escaped_quote:
   src: "<li do='raw(\'blah\')'>blah</li>"
   tem: "<li><%= raw(\"blah\") %></li>"
-

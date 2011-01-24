@@ -15,8 +15,10 @@ class ZafuTest < Test::Unit::TestCase
     include RubyLess
     safe_method :hello => String
     safe_method :one => {:class => String, :method => "dummy_one"}
+    safe_context :friend => Dummy
   end
   safe_method :dum  => Dummy
+  safe_method :list => [Dummy]
   safe_method :dum2 => {:class => Dummy, :nil => true}
   safe_method [:raw, String] => String
 
@@ -34,12 +36,12 @@ class ZafuTest < Test::Unit::TestCase
     end
 
     should 'change node context by following safe_method types' do
-      assert_equal '<% var1 = dum -%><%= var1.hello %>', zafu_erb("<r:dum do='hello'/>")
+      assert_equal '<% var1 = dum %><%= var1.hello %>', zafu_erb("<r:dum do='hello'/>")
     end
 
     context 'that can be nil' do
       should 'wrap context in if' do
-        assert_equal '<% if var1 = dum2 -%><%= var1.hello %><% end -%>', zafu_erb("<r:dum2 do='hello'/>")
+        assert_equal '<% if var1 = dum2 %><%= var1.hello %><% end %>', zafu_erb("<r:dum2 do='hello'/>")
       end
     end
   end
