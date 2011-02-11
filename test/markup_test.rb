@@ -296,6 +296,16 @@ class MarkupTest < Test::Unit::TestCase
       end
     end
   end
+  
+  context 'To string' do
+    subject do
+      Markup.new('img', :src => '/foo/bar.png')
+    end
+    
+    should 'render' do
+      assert_equal "<img src='/foo/bar.png'/>", subject.to_s
+    end
+  end
 
   context 'Wrapping some text' do
     setup do

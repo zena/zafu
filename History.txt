@@ -1,4 +1,9 @@
-== 0.7.6
+== 0.7.7
+
+* Enhancements
+  * Added to_s for Markup.
+
+== 0.7.6 2011-02-11
 
 * Enhancements
   * Enabled empty do (ignore method)

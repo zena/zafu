@@ -4,7 +4,7 @@ module Zafu
   # A Markup object is used to hold information on the tag used (<li>), it's parameters (.. class='xxx') and
   # indentation.
   class Markup
-    EMPTY_TAGS   = %w{meta input link}
+    EMPTY_TAGS   = %w{meta input link img}
     STEAL_PARAMS = {
       'link'   => [:href, :charset, :rel, :type, :media, :rev, :target],
       'script' => [:type, :charset, :defer],
@@ -63,10 +63,14 @@ module Zafu
       end
     end
 
-    def initialize(tag)
+    def initialize(tag, params = nil)
       @done       = false
       @tag        = tag
-      @params     = OrderedHash.new
+      if params
+        self.params = params
+      else
+        @params     = OrderedHash.new
+      end
       @dyn_params = OrderedHash.new
     end
 
@@ -239,6 +243,10 @@ module Zafu
       @done = true
 
       (@space_before || '') + res + (@space_after || '')
+    end
+
+    def to_s
+      wrap(nil)
     end
 
     def steal_keys
