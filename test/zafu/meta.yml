@@ -1,6 +1,6 @@
 some_template:
-  src: "<div id='a'>a</div><div id='b'>b</div>"
-  tem: "<div id='a'>a</div><div id='b'>b</div>"
+  src: "<div id='a'>a</div><div id='b' do='link'>b</div>"
+  tem: "<div id='a'>a</div><div id='b'><%= make_link(@node) %></div>"
 
 include_with_part:
   # part 'a' is moved around
@@ -15,3 +15,7 @@ include_missing_part:
 missing_template:
   src: "<r:include template='Foo'/>"
   tem: "/template 'Foo' not found/"
+
+include_part:
+  src: "xxx <r:include template='/some/template' part='b'/>"
+  tem: "xxx <div id='b'><%= make_link(@node) %></div>"

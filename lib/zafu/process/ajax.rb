@@ -55,12 +55,10 @@ module Zafu
             )
 
             # Render 'else' clauses
-            @markup.done = false
-            out wrap(
-              expand_with(
+            else_clauses = expand_with(
                 :in_if => true,
-                :only  => ['elsif', 'else']
-              )
+                :only  => ['elsif', 'else'],
+                :markup => @markup
             )
 
             # 2. Save 'each' template

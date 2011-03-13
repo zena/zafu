@@ -29,6 +29,7 @@ module Zafu
 
         # We use 'elsif' just in case there are more then one 'else' clause
         if markup = @context[:markup]
+          # Copy markup tag
           @markup.tag ||= markup.tag
           @markup.steal_html_params_from(@params)
           markup.params.each do |k, v|

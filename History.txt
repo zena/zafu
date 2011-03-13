@@ -2,6 +2,7 @@
 
 * Enhancements
   * Added to_s for Markup.
+  * Fixed a bug where markup wrapping would occur too often on ajax block.
 
 == 0.7.6 2011-02-11
 
