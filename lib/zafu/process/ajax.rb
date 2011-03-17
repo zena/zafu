@@ -268,7 +268,8 @@ module Zafu
         if ['context', 'each', 'block'].include?(method)
           # do not propagate 'form',etc up
           all.reject do |k,v|
-            ['form','unlink'].include?(k)
+            # FIXME: Zena leakage
+            ['form','unlink', 'count'].include?(k)
           end
         elsif ['if', 'case'].include?(method) || (method =~ /^[A-Z]/)
           # conditional
