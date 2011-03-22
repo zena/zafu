@@ -116,11 +116,24 @@ module Zafu
           res = []
 
           keys.each do |key|
-            next unless value = @params[key.to_sym]
+            next unless value = param(key.to_sym)
             res << ":#{key} => #{RubyLess.translate_string(self, value)}"
           end
 
           res.empty? ? nil : res
+        end
+
+        # Pass default values as parameters in @context as :param_XXXX
+        def r_default
+          cont = {}
+          @params.each do |k, v|
+            cont[:"params_#{k}"] = v
+          end
+          expand_with cont
+        end
+
+        def param(key, default = nil)
+          @params[key] || @context[:"params_#{key}"] || default
         end
 
         # Method resolution. The first matching method is returned. Order of evaluation is
