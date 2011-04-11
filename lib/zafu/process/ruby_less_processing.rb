@@ -94,9 +94,9 @@ module Zafu
       end
 
       def get_attribute_or_eval(use_string_block = true)
-        if attribute = @params[:attr] || @params[:date]
+        if attribute = @params[:attr]
           code = "this.#{attribute}"
-        elsif code = @params[:eval] || @params[:test]
+        elsif code = @params[:eval] || @params[:test] || @params[:date]
         elsif text = @params[:text]
           code = "%Q{#{text}}"
         elsif use_string_block && @blocks.size == 1 && @blocks.first.kind_of?(String)
