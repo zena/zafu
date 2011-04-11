@@ -110,6 +110,15 @@ module Zafu
         return parser_continue(err.message, code)
       end
 
+      # Pass default values as parameters in @context as :param_XXXX
+      def r_default
+        cont = {}
+        @params.each do |k, v|
+          cont[:"params_#{k}"] = v
+        end
+        expand_with cont
+      end
+
       private
         # Extract arguments from params
         def extract_from_params(*keys)
@@ -121,15 +130,6 @@ module Zafu
           end
 
           res.empty? ? nil : res
-        end
-
-        # Pass default values as parameters in @context as :param_XXXX
-        def r_default
-          cont = {}
-          @params.each do |k, v|
-            cont[:"params_#{k}"] = v
-          end
-          expand_with cont
         end
 
         def param(key, default = nil)
@@ -230,6 +230,8 @@ module Zafu
             else
               out "<%= #{res} %>"
             end
+          elsif res.klass == Boolean
+            expand_if(res)
           elsif @blocks.empty?
             out "<%= #{res} %>"
           elsif res.could_be_nil?

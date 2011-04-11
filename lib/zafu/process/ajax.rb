@@ -33,7 +33,7 @@ module Zafu
 
           # 1. Render inline
           #                                                                                                                 assign [] to var
-          out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{node.will_be?(Comment) ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
+          out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{finder[:class].first <= Comment ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
           # The list is not empty or we have enough rights to add new elements.
           set_dom_prefix
 
@@ -337,6 +337,9 @@ module Zafu
           ['block', 'drop'].include?(each_block.single_child_method)
         end
 
+        def context_for_partial(cont)
+          context_without_vars.merge(cont)
+        end
       private
 
         # Find a block to update on the page
@@ -353,7 +356,7 @@ module Zafu
         end
 
         def store_block(block, cont = {})
-          cont = context_without_vars.merge(cont)
+          cont, prefix = context_for_partial(cont)
 
           # Create new node context
           node = cont[:node].as_main(ActiveRecord::Base)
@@ -368,7 +371,7 @@ module Zafu
 
           # We overwrite all context: no merge.
           with_context(cont, false) do
-            template = expand_block(block)
+            template = prefix.to_s + expand_block(block)
           end
 
           out helper.save_erb_to_url(template, cont[:saved_template])
