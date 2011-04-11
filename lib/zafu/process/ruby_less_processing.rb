@@ -94,9 +94,11 @@ module Zafu
       end
 
       def get_attribute_or_eval(use_string_block = true)
-        if attribute = @params[:attr]
+        if attribute = @params[:date]
+          return parser_continue("'date' parameter is deprecated. Please use 'attr' or 'eval'.")
+        elsif attribute = @params[:attr]
           code = "this.#{attribute}"
-        elsif code = @params[:eval] || @params[:test] || @params[:date]
+        elsif code = @params[:eval] || @params[:test]
         elsif text = @params[:text]
           code = "%Q{#{text}}"
         elsif use_string_block && @blocks.size == 1 && @blocks.first.kind_of?(String)
