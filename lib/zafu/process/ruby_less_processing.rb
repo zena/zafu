@@ -1,5 +1,5 @@
 require 'rubyless'
-
+puts "LOADING ZAFU:0.7.7 OK"
 module Zafu
   module Process
     module RubyLessProcessing

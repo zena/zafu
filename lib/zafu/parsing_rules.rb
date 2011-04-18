@@ -71,7 +71,7 @@ module Zafu
         @params = Markup.parse_params(@params)
       end
 
-      # set name used for include/replace from html_tag if not allready set by superclass
+      # set name used for include/replace from html_tag if not already set by superclass
       @name = extract_name
 
       if !@markup.tag && (@markup.tag = @params.delete(:tag))
@@ -86,6 +86,11 @@ module Zafu
       elsif !sub
         enter(mode)
       end
+    end
+
+    # Used to debug parser.
+    def to_s
+      "[#{@method}:#{@name}#{@params.empty? ? '' : @params.map{|k,v| ":#{k}=>#{v.inspect}"}.join(', ')}]" + (@blocks||[]).join('') + "[/#{@method}]"
     end
 
     def extract_name
