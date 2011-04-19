@@ -427,16 +427,15 @@ module Zafu
 
     alias public_descendants all_descendants
 
-    # Return the last defined parent for the given key.
-    def ancestor(key)
-      res = nil
+    # Return the last defined parent for the given keys.
+    def ancestor(keys)
+      keys = Array(keys)
       ancestors.reverse_each do |a|
-        if key == a.method
-          res = a
-          break
+        if keys.include?(a.method)
+          return a
         end
       end
-      res
+      nil
     end
 
     # Return the last defined descendant for the given key.

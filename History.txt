@@ -4,6 +4,7 @@
   * Added to_s for Markup.
   * Fixed a bug where markup wrapping would occur too often on ajax block.
   * Added 'to_s' method to ease debugging.
+  * Added support for an array of keys in "ancestor".
 
 == 0.7.6 2011-02-11
 

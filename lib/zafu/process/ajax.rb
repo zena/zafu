@@ -41,6 +41,8 @@ module Zafu
           open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do
             # Pagination count and other contextual variables exist here.
 
+            # TODO: DRY with r_block...
+
             # INLINE ==========
             out wrap(
               expand_with(
@@ -134,41 +136,59 @@ module Zafu
         else
           # 1. store template
           # will wrap with @markup
-          store_block(self)
+          store_block(self, :ignore => ['form'])
 
-          # 2. render
+          if edit_block = descendant('edit')
+            form_block = descendant('form') || self
+
+            publish_after_save = form_block.params[:publish] ||
+                                 (edit_block && edit_block.params[:publish])
+
+            # 2. store form
+            cont = {
+              :saved_template     => form_url(node.dom_prefix),
+              :make_form          => self == form_block,
+              :publish_after_save => publish_after_save,
+            }
+
+            store_block(form_block, cont)
+          end
+
+          # 3. render
           # Set id with the current node context (<%= var1.zip %>).
           @markup.set_id(node.dom_id(:list => false))
-          out expand_with
+          out expand_with(
+            # Do not render form: it is used for the partial used by 'edit'
+            :ignore => ['form']
+          )
         end
       end
 
 
       def r_edit
         # ajax
-        if @context[:form_cancel]
+        if cancel = @context[:form_cancel]
           # cancel button
-          @context[:form_cancel]
+          out cancel
         else
           # edit button
 
           # TODO: show 'reply' instead of 'edit' in comments if visitor != author
-          each_block = ancestor('each')
+          block = ancestor(%w{each block})
 
-          link = wrap(make_link(:default_text => _('edit'), :update => each_block, :action => 'edit'))
+          # 'publish' is detected by r_block and set in form.
+          # removed so it does not polute link
+          @params.delete('publish')
+          @params.delete('cancel')
+
+          link = wrap(make_link(:default_text => _('edit'), :update => block, :action => 'edit'))
 
           out "<% if #{node}.can_write? %>#{link}<% end %>"
         end
-
-        #if @context[:template_url]
-        #else
-        #  # FIXME: we could link to some html page to edit the item.
-        #  ""
-        #end
       end
 
       def r_cancel
-        (@context[:form_options] || {})[:form_cancel]
+        r_edit
       end
 
       def r_add

@@ -59,7 +59,7 @@ module Zafu
         def make_form
           return nil unless @context[:make_form]
 
-          if method == 'each'
+          if method == 'each' || method == 'block'
             r_form
           else
             nil
@@ -101,9 +101,8 @@ module Zafu
         # Render the 'form' tag and set expansion context.
         def form_tag(options)
           opts = options.dup
-          form = @context[:form]
 
-          if form && (form.descendant('cancel') || form.descendant('edit'))
+          if descendant('cancel') || descendant('edit')
             # Pass 'form_cancel' content to expand_with (already in options).
           else
             # Insert cancel before form
