@@ -136,7 +136,7 @@ module Zafu
         else
           # 1. store template
           # will wrap with @markup
-          store_block(self, :ignore => ['form'])
+          store_block(self, :ajax_action => 'show')
 
           if edit_block = descendant('edit')
             form_block = descendant('form') || self
@@ -149,6 +149,7 @@ module Zafu
               :saved_template     => form_url(node.dom_prefix),
               :make_form          => self == form_block,
               :publish_after_save => publish_after_save,
+              :ajax_action        => 'edit',
             }
 
             store_block(form_block, cont)
@@ -157,10 +158,7 @@ module Zafu
           # 3. render
           # Set id with the current node context (<%= var1.zip %>).
           @markup.set_id(node.dom_id(:list => false))
-          out expand_with(
-            # Do not render form: it is used for the partial used by 'edit'
-            :ignore => ['form']
-          )
+          out expand_with
         end
       end
 

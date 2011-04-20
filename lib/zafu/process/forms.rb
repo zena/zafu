@@ -6,6 +6,10 @@ module Zafu
       end
 
       def r_form
+        unless @params[:on].nil? || @params[:on].split(',').include?(@context[:ajax_action])
+          return ''
+        end
+
         options = form_options
 
         @markup.set_id(options[:id]) if options[:id]
