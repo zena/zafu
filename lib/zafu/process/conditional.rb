@@ -59,7 +59,6 @@ module Zafu
       def expand_if(condition, new_node_context = self.node, alt_markup = @markup)
         res = ""
         res << "<% if #{condition} %>"
-
         with_context(:node => new_node_context) do
           res << wrap(expand_with)
         end

@@ -206,7 +206,7 @@ module Zafu
           @blocks = []
           add_btn = make(:void, :method => 'add_btn', :params => @params.dup, :text => '')
           add_btn.blocks = blocks
-          remove_instance_variable(:@all_descendants)
+          @all_descendants = nil
         end
 
         if @context[:form]
@@ -223,10 +223,14 @@ module Zafu
           # Expand 'add' block
           out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
-          # New object to render form.
+          if klass = @context[:klass]
+            return parser_error("Invalid class '#{klass}'") unless klass = get_class(klass)
+          else
+            klass = Array(node.klass).first
+          end
 
-          # FIXME: use 'klass' param in r_add or r_form instead of current list content.
-          new_node = node.move_to("#{var}_new", [node.klass].flatten.first, :new_record => true)
+          # New object to render form.
+          new_node = node.move_to("#{var}_new", klass, :new_record => true)
 
           if new_node.will_be?(Node)
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...

@@ -90,7 +90,7 @@ module Zafu
 
     # Used to debug parser.
     def to_s
-      "[#{@method}:#{@name}#{@params.empty? ? '' : @params.map{|k,v| ":#{k}=>#{v.inspect}"}.join(', ')}]" + (@blocks||[]).join('') + "[/#{@method}]"
+      "[#{@method}#{@name.blank? ? '' : " '#{@name}'"}#{@params.empty? ? '' : " #{@params.map{|k,v| ":#{k}=>#{v.inspect}"}.join(', ')}"}]" + (@blocks||[]).join('') + "[/#{@method}]"
     end
 
     def extract_name
@@ -295,6 +295,26 @@ module Zafu
         @method = 'void'
         flush
       end
+    end
+
+    # Helper during compilation to make a block
+    def add_block(text_or_opts, at_start = false)
+      # avoid wrapping objects in [void][/void]
+      bak = @blocks
+        @blocks = []
+        if text_or_opts.kind_of?(String)
+          new_blocks = make(:void, :method => 'void', :text => text_or_opts).blocks
+        else
+          new_blocks = [make(:void, text_or_opts)]
+        end
+        if at_start
+          bak = new_blocks + bak
+        else
+          bak += new_blocks
+        end
+      @blocks = bak
+      # Force descendants rebuild
+      @all_descendants = nil
     end
   end # ParsingRules
 end # Zafu

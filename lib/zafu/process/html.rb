@@ -84,7 +84,9 @@ module Zafu
         case @markup.tag
         when 'link'
           key = :href
-          if @params[:rel].downcase == 'stylesheet'
+          return parser_error("Missing 'rel' parameter.") unless rel = @params[:rel]
+          return parser_error("Missing 'href' parameter.") unless @params[:href]
+          if rel.downcase == 'stylesheet'
             type = :stylesheet
           else
             type = :link

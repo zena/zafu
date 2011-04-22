@@ -21,7 +21,6 @@ module Zafu
       # searches inside a 'helpers' module and finally looks into the current node_context.
       # If nothing is found at this stage, we prepend the method with the current node and start over again.
       def safe_method_type(signature, receiver = nil)
-        #puts [node.name, node.klass, signature].inspect
         super || get_method_type(signature, false)
       end
 
@@ -94,13 +93,15 @@ module Zafu
       end
 
       def get_attribute_or_eval(use_string_block = true)
-        if attribute = @params[:date]
+        if @params[:date] && method != 'link'
           return parser_continue("'date' parameter is deprecated. Please use 'attr' or 'eval'.")
         elsif attribute = @params[:attr]
           code = "this.#{attribute}"
         elsif code = @params[:eval] || @params[:test]
         elsif text = @params[:text]
           code = "%Q{#{text}}"
+        elsif text = @params[:t]
+          code = "t(%Q{#{text}})"
         elsif use_string_block && @blocks.size == 1 && @blocks.first.kind_of?(String)
           return RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first)
         else
@@ -273,7 +274,8 @@ module Zafu
           ivar = signature.first
           if ivar == 'this'
             if node.list_context?
-              raise RubyLess::Error.new("Cannot use 'this' in list_context.")
+              # Return first element
+              node.opts.merge(:class => node.klass.first, :method => "#{node}.first")
             else
               node.opts.merge(:class => node.klass, :method => node.name)
             end
