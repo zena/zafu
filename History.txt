@@ -6,6 +6,7 @@
   * Added 'to_s' method to ease debugging.
   * Added support for an array of keys in "ancestor".
   * Added 'on' option to form (ajax actions).
+  * Should steal 'title' attribute on 'a' Markup.
 
 == 0.7.6 2011-02-11
 

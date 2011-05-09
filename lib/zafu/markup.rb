@@ -7,6 +7,7 @@ module Zafu
     EMPTY_TAGS   = %w{meta input link img}
     STEAL_PARAMS = {
       'link'   => [:href, :charset, :rel, :type, :media, :rev, :target],
+      'a'      => [:title, :onclick],
       'script' => [:type, :charset, :defer],
       :other   => [:class, :id, :style],
     }
@@ -23,6 +24,8 @@ module Zafu
     attr_accessor :space_before
     # Space to insert after tag
     attr_accessor :space_after
+    # Keys to remove from zafu and use for the tag itself
+    attr_writer   :steal_keys
 
     class << self
 
@@ -250,7 +253,7 @@ module Zafu
     end
 
     def steal_keys
-      (STEAL_PARAMS[@tag] || []) + STEAL_PARAMS[:other]
+      @steal_keys || (STEAL_PARAMS[@tag] || []) + STEAL_PARAMS[:other]
     end
 
     private
