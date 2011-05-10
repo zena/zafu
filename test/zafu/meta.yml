@@ -4,7 +4,8 @@ some_template:
 
 include_with_part:
   # part 'a' is moved around
-  src: "<r:include template='/some/template'><r:with part='a'/><r:with part='b'>new b:<r:include template='/some/template' part='a'/></r:with></r:include>"
+  # and we overwrite 'link' method with 'void'
+  src: "<r:include template='/some/template'><r:with part='a'/><r:with part='b' do='void'>new b:<r:include template='/some/template' part='a'/></r:with></r:include>"
   tem: "<div id='b'>new b:<div id='a'>a</div></div>"
 
 include_with_part_change_class:
