@@ -224,7 +224,12 @@ module Zafu
           out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
           if klass = @context[:klass]
-            return parser_error("Invalid class '#{klass}'") unless klass = get_class(klass)
+            unless klass = get_class(klass)
+              out parser_error("Invalid class '#{@context[:klass]}'")
+              # Clean close ERB
+              out "<% end -%>"
+              return
+            end
           else
             klass = Array(node.klass).first
           end
