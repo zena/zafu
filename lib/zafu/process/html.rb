@@ -11,6 +11,9 @@ module Zafu
         # [self = original_element]. Replace @markup with content of the new_obj (<ul do='with'>...)
         if new_obj.markup.tag
           @markup.tag = new_obj.markup.tag
+        else
+          # Steal 'class' param
+          @markup.steal_html_params_from(new_obj.params)
         end
 
         @markup.params.merge!(new_obj.markup.params)

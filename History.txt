@@ -2,6 +2,7 @@
 
 * Enhancements
   * Fixed bad ERB on 'klass' error.
+  * Should steal html params from [with] ("<r:with class='foo'>").
 
 == 0.7.8 2011-05-10
 

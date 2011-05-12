@@ -13,6 +13,11 @@ include_with_part_change_class:
   src: "<r:include template='/some/template'><div class='foobar' do='with' part='b'>new b</div></r:include>"
   tem: "<div id='a'>a</div><div id='b' class='foobar'><%= make_link(@node) %></div>"
 
+include_with_part_change_class_no_div:
+  # part 'a' is moved around
+  src: "<r:include template='/some/template'><r:with part='b' class='foo'>new b</div></r:include>"
+  tem: "<div id='a'>a</div><div id='b' class='foo'><%= make_link(@node) %></div>"
+
 include_missing_part:
   # part 'a' is moved around
   src: "<r:include template='/some/template' part='bad'/>"
