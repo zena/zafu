@@ -27,7 +27,10 @@ module Zafu
       @markup = Markup.new(@options.delete(:html_tag))
 
       # html_tag
-      @markup.params = @options.delete(:html_tag_params)
+      if html_params = @options.delete(:html_tag_params)
+        # FIXME: make a better parser so that we do not have to worry with '>' at all.
+        @markup.params = html_params.gsub('&gt;', '>')
+      end
 
       # end_tag is used to know when to close parsing in sub-do
       # Example:
@@ -42,10 +45,6 @@ module Zafu
 
       # code indentation
       @markup.space_before = @options.delete(:space_before) # @space_before
-
-      # form capture (input, select, textarea, form)
-      # FIXME: what is this ???
-      @options[:form] ||= true if @method == 'form'
 
       if @params =~ /\A([^>]*?)do\s*=('|")([^\2]*?[^\\])\2([^>]*)\Z/
         #puts $~.to_a.inspect
@@ -207,13 +206,6 @@ module Zafu
         reg = $~
         opts.merge!(:method=> reg[4].gsub("\\#{reg[3]}", reg[3]), :html_tag=>reg[1], :html_tag_params=>reg[2], :params=>reg[5])
         opts.merge!(:text=>'') if reg[6] != ''
-        make(:void, opts)
-      elsif @options[:form] && @text =~ /\A<(input|select|textarea|form)([^>]*?)(\/?)>/
-        eat $&
-        method = $1 == 'form' ? 'form_tag' : $1 # <form> ==> r_form_tag, <r:form> ==> r_form
-        opts.merge!(:method=>method, :params=>$2)
-        opts.merge!(:text=>'') if $3 != ''
-        opts.merge!(:end_tag=>'form') if method == 'form_tag'
         make(:void, opts)
       elsif @text =~ /\A<(\w+)(([^>]*?)\#\{([^>]*?))(\/?)>/
         # html tag with dynamic params

@@ -3,6 +3,7 @@
 * Enhancements
   * Fixed bad ERB on 'klass' error.
   * Should steal html params from [with] ("<r:with class='foo'>").
+  * Removed auto-transform of 'input', 'form' and other native tags.
 
 == 0.7.8 2011-05-10
 
