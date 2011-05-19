@@ -7,7 +7,7 @@ module Zafu
     EMPTY_TAGS   = %w{meta input link img}
     STEAL_PARAMS = {
       'link'   => [:href, :charset, :rel, :type, :media, :rev, :target],
-      'a'      => [:title, :onclick],
+      'a'      => [:title, :onclick, :target],
       'script' => [:type, :charset, :defer],
       :other   => [:class, :id, :style],
     }

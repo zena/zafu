@@ -35,7 +35,7 @@ module Zafu
           #                                                                                                                 assign [] to var
           out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{finder[:class].first <= Comment ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
           # The list is not empty or we have enough rights to add new elements.
-          set_dom_prefix
+          node.dom_prefix = dom_name
 
           # New node context.
           open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do
@@ -58,9 +58,9 @@ module Zafu
 
             # Render 'else' clauses
             else_clauses = expand_with(
-                :in_if => true,
-                :only  => ['elsif', 'else'],
-                :markup => @markup
+              :in_if => true,
+              :only  => ['elsif', 'else'],
+              :markup => @markup
             )
 
             # 2. Save 'each' template
@@ -124,7 +124,7 @@ module Zafu
         end
 
         # Since we are using ajax, we will need this object to have an ID set.
-        set_dom_prefix
+        node.dom_prefix = dom_name
 
         @markup.done = false
 
@@ -279,6 +279,7 @@ module Zafu
       def r_each
         if @context[:saved_template]
           # render to start a saved template
+          node.propagate_dom_scope!
           options = form_options
           @markup.set_id(options[:id]) if options[:id]
           @markup.set_param(:style, options[:style]) if options[:style]
@@ -313,14 +314,6 @@ module Zafu
         @context[:form] || descendant('unlink') || descendant('drop')
       end
 
-      # Set a unique DOM prefix to build unique ids in the page.
-      def set_dom_prefix(node = self.node)
-        @name ||= unique_name
-        # TODO: should rebuild descendants list in parents...
-        #puts [parent.method, method, @context[:name], @name].inspect
-        node.dom_prefix = @name
-      end
-
       # Unique template_url, ending with dom_id
       def template_url(dom_prefix = node.dom_prefix)
         "#{root.options[:root]}/#{dom_prefix}"
@@ -330,9 +323,16 @@ module Zafu
         template_url(dom_prefix) + '_form'
       end
 
+      # Return object id (or name). Sets name when needed.
+      # Context is passed when the parent needs to set dom_name on a child
+      # before @context is passed down.
+      def dom_name(context = @context)
+        @name ||= unique_name(context)
+      end
+
       # Return a different name on each call
-      def unique_name
-        base = @name || @context[:name] || 'list'
+      def unique_name(context = @context)
+        base = @name || context[:name] || 'list'
         root.get_unique_name(base, base == @name).gsub(/[^\d\w\/]/,'_')
       end
 
@@ -384,10 +384,12 @@ module Zafu
 
         def store_block(block, cont = {})
           cont, prefix = context_for_partial(cont)
+          # Keep dom prefix
+          dom_prefix = node.dom_prefix
 
           # Create new node context
           node = cont[:node].as_main(ActiveRecord::Base)
-          node.dom_prefix = @name
+          node.dom_prefix = dom_prefix
 
           cont[:template_url] = template_url(node.dom_prefix)
           cont[:node]  = node

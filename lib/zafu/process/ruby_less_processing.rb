@@ -102,6 +102,12 @@ module Zafu
           code = "%Q{#{text}}"
         elsif text = @params[:t]
           code = "t(%Q{#{text}})"
+        # elsif var = @params[:var]
+        #   if code = get_context_var('set_var', var)
+        #     return code
+        #   else
+        #     return parser_continue("Var #{var.inspect} not declared.")
+        #   end
         elsif use_string_block && @blocks.size == 1 && @blocks.first.kind_of?(String)
           return RubyLess::TypedString.new(@blocks.first.inspect, :class => String, :literal => @blocks.first)
         else
@@ -262,6 +268,7 @@ module Zafu
         # Find a class or behavior based on a name. The returned class should implement
         # 'safe_method_type'.
         def get_class(class_name)
+          deb class_name
           Module.const_get(class_name)
         rescue
           nil

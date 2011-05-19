@@ -308,5 +308,21 @@ module Zafu
       # Force descendants rebuild
       @all_descendants = nil
     end
+
+    # Helper during compilation to wrap current content in a new block
+    def wrap_in_block(text_or_opts)
+      # avoid wrapping objects in [void][/void]
+      bak = @blocks
+      @blocks = []
+      if text_or_opts.kind_of?(String)
+        wrapper = make(:void, :method => 'void', :text => text_or_opts)
+      else
+        wrapper = make(:void, text_or_opts)
+      end
+      wrapper.blocks = bak
+      @blocks = [wrapper]
+      # Force descendants rebuild
+      @all_descendants = nil
+    end
   end # ParsingRules
 end # Zafu
