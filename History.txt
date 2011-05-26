@@ -1,10 +1,11 @@
-== 0.7.9
+== 0.7.9 2011-05-26
 
 * Enhancements
   * Fixed bad ERB on 'klass' error.
   * Should steal html params from [with] ("<r:with class='foo'>").
   * Removed auto-transform of 'input', 'form' and other native tags.
   * Added 'wrap_in_block' and 'add_block' helpers.
+  * Freezing RubyLess evaluated code (Ruby parser bug altering input string).
 
 == 0.7.8 2011-05-10
 

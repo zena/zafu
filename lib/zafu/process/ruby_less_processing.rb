@@ -60,16 +60,18 @@ module Zafu
       end
 
       # TEMPORARY METHOD DURING HACKING...
-      def r_erb
-        "<pre><%= @erb.gsub('<','&lt;').gsub('>','&gt;') %></pre>"
-      end
+      # def r_erb
+      #   "<pre><%= @erb.gsub('<','&lt;').gsub('>','&gt;') %></pre>"
+      # end
 
       def rubyless_render(method, params)
         # We need to set this here because we cannot pass options to RubyLess or get them back
         # when we evaluate the method to see if we can use blocks as arguments.
         @rendering_block_owner = true
         code = method_with_arguments(method, params)
-        rubyless_expand RubyLess.translate(self, code)
+        # It is strange that we need to freeze code... But if we don't, we
+        # get double ##{} on some systems (Linux).
+        rubyless_expand RubyLess.translate(self, code.freeze)
       ensure
         @rendering_block_owner = false
       end
@@ -98,6 +100,8 @@ module Zafu
         elsif attribute = @params[:attr]
           code = "this.#{attribute}"
         elsif code = @params[:eval] || @params[:test]
+        elsif code = @params[:param]
+          code = "params[:#{code}]"
         elsif text = @params[:text]
           code = "%Q{#{text}}"
         elsif text = @params[:t]

@@ -44,5 +44,21 @@ class ZafuRubyLessTest < Test::Unit::TestCase
       end
     end
   end
+  
+  context 'With an invalid string' do
+    subject do
+      'contact where id #{params[:foo]} in site'
+    end
+
+    should 'not alter string on error' do
+      str = subject.dup
+      begin
+        x = RubyLess.translate(self, str)
+      rescue RubyLess::Error => err
+        assert_equal subject, str
+      end
+    end
+  end # With an invalid string
+  
 
 end
