@@ -34,6 +34,13 @@ module Zafu
           obj.markup = @markup.dup
         end
         @markup.tag = nil
+
+        if sub_do
+          obj.method = @blocks.first.method
+          obj.params = @blocks.first.params
+        elsif params[:method]
+          obj.method = params[:method]
+        end
         super(obj)
       end
 

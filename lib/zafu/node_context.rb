@@ -78,11 +78,11 @@ module Zafu
           dom
         end
       else
-        if @up
-          [dom_prefix] + @up.dom_scopes + (options[:list] ? [make_scope_id] : [])
-        else
-          [dom_prefix] + (options[:list] ? [make_scope_id] : [])
-        end.compact.uniq.join('_')
+        (
+          [dom_prefix] +
+          dom_scopes   +
+          (options[:list] ? [make_scope_id] : [])
+        ).compact.uniq.join('_')
       end
     end
 

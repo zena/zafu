@@ -17,6 +17,12 @@ module Zafu
         super
       end
 
+      def merge(hash)
+        res = dup
+        res.merge!(hash)
+        res
+      end
+
       alias o_keys keys
       def get_keys
         @keys ||= o_keys

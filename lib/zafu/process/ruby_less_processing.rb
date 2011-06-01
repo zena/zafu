@@ -33,7 +33,7 @@ module Zafu
 
         rubyless_render(@method, params)
       rescue RubyLess::NoMethodError => err
-        parser_continue("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> for #{err.receiver_with_class}")
+        parser_continue("#{err.error_message} <span class='type'>#{err.method_with_arguments}</span> (#{node.klass} context)")
       rescue RubyLess::Error => err
         parser_continue(err.message)
       end
@@ -133,7 +133,7 @@ module Zafu
       end
 
       private
-        # Extract arguments from params
+        # Extract arguments from params (evaluates params as RubyLess strings).
         def extract_from_params(*keys)
           res = []
 
@@ -272,7 +272,6 @@ module Zafu
         # Find a class or behavior based on a name. The returned class should implement
         # 'safe_method_type'.
         def get_class(class_name)
-          deb class_name
           Module.const_get(class_name)
         rescue
           nil
