@@ -174,10 +174,11 @@ module Zafu
           # TODO: show 'reply' instead of 'edit' in comments if visitor != author
           block = ancestor(%w{each block})
 
-          # 'publish' is detected by r_block and set in form.
-          # removed so it does not polute link
-          @params.delete('publish')
-          @params.delete('cancel')
+          # These parameters are detected by r_block and set in form.
+          # removed so they do not polute link
+          @params.delete(:publish)
+          @params.delete(:cancel)
+          @params.delete(:tcancel)
 
           link = wrap(make_link(:default_text => _('edit'), :update => block, :action => 'edit'))
 

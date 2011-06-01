@@ -93,7 +93,7 @@ module Zafu
     end
 
     def extract_name
-      super ||
+      @options[:name] ||
       (%w{input select textarea}.include?(@method) ? nil : @params[:name]) ||
       @markup.params[:id]
     end

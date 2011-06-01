@@ -64,18 +64,29 @@ module Zafu
     end
 
     # Generate a unique DOM id for this element based on dom_scopes defined in parent contexts.
+    # :code option returns ruby
+    # :erb  option returns either string content or "<%= ... %>"
+    #       default returns something to insert in interpolated string such as '#{xxx}'
     def dom_id(opts = {})
       dom_prefix = opts[:dom_prefix] || self.dom_prefix
       options = {:list => true, :erb => true}.merge(opts)
 
-      if options[:erb]
-        dom = dom_id(options.merge(:erb => false))
+      if options[:erb] || options[:code]
+        dom = dom_id(options.merge(:erb => false, :code => false))
+
         if dom =~ /^#\{([^\{]+)\}$/
-          "<%= #{$1} %>"
+          code = $1
         elsif dom =~ /#\{/
-          "<%= %Q{#{dom}} %>"
+          code = "%Q{#{dom}}"
         else
-          dom
+          str  = dom
+          code = dom.inspect
+        end
+
+        if options[:code]
+          code
+        else
+          str || "<%= #{code} %>"
         end
       else
         (
