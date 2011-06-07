@@ -118,7 +118,7 @@ module Zafu
         end
 
         src = @params.delete(key)
-        if src && src[0..6] != 'http://'
+        if src && src[0..7] != 'http://'
           new_value = helper.send(:template_url_for_asset, :src => src, :base_path => @options[:base_path], :type => type)
           @markup.params[key] = new_value.blank? ? src : new_value
         end
