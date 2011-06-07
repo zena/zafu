@@ -9,5 +9,10 @@ module Mock
         out_post str
       end
     end
+
+
+    def r_inspect
+      out "#{@params.inspect}"
+    end
   end
 end

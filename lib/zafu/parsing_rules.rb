@@ -95,7 +95,8 @@ module Zafu
     def extract_name
       @options[:name] ||
       (%w{input select textarea}.include?(@method) ? nil : @params[:name]) ||
-      @markup.params[:id]
+      @markup.params[:id] ||
+      @params[:id]
     end
 
     def remove_erb(text)
@@ -125,7 +126,12 @@ module Zafu
     # scan rules
     def scan
       # puts "SCAN(#{@method}): [#{@text}]"
-      if @text =~ /\A([^<]*?)(^ *|)</m
+      if @text =~ %r{\A([^<]*?)(\s*)//!}m
+        # comment
+        flush $1
+        eat $2
+        scan_comment
+      elsif @text =~ /\A([^<]*?)(^ *|)</m
         flush $1
         eat $2
         if @text[1..1] == '/'
@@ -185,6 +191,16 @@ module Zafu
       elsif @text =~ /\A<!--.*?-->/m
         # html comment
         flush $&
+      else
+        # error
+        flush
+      end
+    end
+
+    def scan_comment
+      if @text =~ %r{\A//!.*(\n|\Z)}
+        # zafu html escaped
+        eat $&
       else
         # error
         flush

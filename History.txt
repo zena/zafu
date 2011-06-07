@@ -4,6 +4,7 @@
   * Include with 'part' can now replace method.
   * Fixed 'merge' for OrderedHash.
   * Fixed dom_scope from block in each (was not using propagated dom scope).
+  * Added support for comments (started with '//!').
 
 == 0.7.9 2011-05-26
 
