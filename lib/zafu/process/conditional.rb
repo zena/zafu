@@ -72,7 +72,11 @@ module Zafu
       private
         def get_condition
           if in_tag = @params[:in]
-            ancestor(in_tag) ? 'true' : 'false'
+            if in_tag == 'form' && @context[:make_form]
+              'true'
+            else
+              ancestor(in_tag) ? 'true' : 'false'
+            end
           else
             get_attribute_or_eval(false)
           end

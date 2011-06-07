@@ -8,6 +8,7 @@ module Zafu
 
       # This method process a list and handles building the necessary templates for ajax 'add'.
       def expand_with_finder(finder)
+        @context.delete(:make_form) # Do not propagate.
         return super unless finder[:class].kind_of?(Array)
 
         # reset scope
