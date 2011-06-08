@@ -26,8 +26,14 @@ module Zafu
                              (edit_block && edit_block.params[:publish])
 
         # class name for create form
-        klass       = (add_block  &&  add_block.params[:klass]) ||
-                      (form_block && form_block.params[:klass])
+        if class_name = (add_block  &&  add_block.params[:klass]) ||
+                        (form_block && form_block.params[:klass])
+          unless klass = get_class(class_name)
+            return parser_error("Invalid class '#{class_name}'")
+          end
+        else
+          klass = finder[:class].first
+        end
 
         if need_ajax?(each_block)
           # We need to build the templates for ajax rendering.
@@ -36,6 +42,7 @@ module Zafu
           #                                                                                                                 assign [] to var
           out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{finder[:class].first <= Comment ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
           # The list is not empty or we have enough rights to add new elements.
+
           node.dom_prefix = dom_name
 
           # New node context.
@@ -72,7 +79,10 @@ module Zafu
               :saved_template     => form_url(node.dom_prefix),
               :klass              => klass,
               :make_form          => each_block == form_block,
+              # Used to get parameters like 'publish', 'done', 'after'
+              :add                => add_block,
               :publish_after_save => publish_after_save,
+              :node               => node.move_to("@node", klass, :new_record => true)
             }
 
             store_block(form_block, cont)
@@ -225,16 +235,7 @@ module Zafu
           # Expand 'add' block
           out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
 
-          if klass = @context[:klass]
-            unless klass = get_class(klass)
-              out parser_error("Invalid class '#{@context[:klass]}'")
-              # Clean close ERB
-              out "<% end -%>"
-              return
-            end
-          else
-            klass = Array(node.klass).first
-          end
+          klass = @context[:klass] || node.single_class
 
           # New object to render form.
           new_node = node.move_to("#{var}_new", klass, :new_record => true)
@@ -254,7 +255,10 @@ module Zafu
           out expand_block(form_block,
             # Needed in form to be able to return the result
             :template_url => template_url(node.dom_prefix),
-            # ??
+            # Used to avoid wrong dom_id in hidden form. Should not be
+            # necessary but it's hard to fix when node changes a lot (drop in add).
+            :dom_prefix   => node.dom_prefix,
+            # Used to add needed hidden fields in form
             :in_add       => true,
             # Used to get parameters like 'publish' or 'klass'
             :add          => self,
@@ -281,9 +285,11 @@ module Zafu
       def r_each
         if @context[:saved_template]
           # render to start a saved template
+          node.saved_dom_id = "\#{ndom_id(#{node})}"
           node.propagate_dom_scope!
+          @markup.set_id(node.dom_id)
+
           options = form_options
-          @markup.set_id(options[:id]) if options[:id]
           @markup.set_param(:style, options[:style]) if options[:style]
 
           out wrap(expand_with)
@@ -386,12 +392,12 @@ module Zafu
 
         def store_block(block, cont = {})
           cont, prefix = context_for_partial(cont)
-          # Keep dom prefix
-          dom_prefix = node.dom_prefix
 
           # Create new node context
           node = cont[:node].as_main(ActiveRecord::Base)
-          node.dom_prefix = dom_prefix
+
+          # The dom_id will be calculated from the Ajax params in the view.
+          node.saved_dom_id = "\#{ndom_id(#{node})}"
 
           cont[:template_url] = template_url(node.dom_prefix)
           cont[:node]  = node

@@ -10,6 +10,8 @@ module Zafu
           return ''
         end
 
+        return parser_error('Cannot render update form in list context.') if node.list_context?
+
         options = form_options
 
         @markup.set_id(options[:id]) if options[:id]

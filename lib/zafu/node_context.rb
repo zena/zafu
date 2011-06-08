@@ -13,6 +13,9 @@ module Zafu
     # it has a name or dom id defined ('main', 'related', 'list', etc).
     attr_writer :dom_prefix
 
+    # This is used to force a given dom_id (in saved templates for example).
+    attr_accessor :saved_dom_id
+
     # Any kind of information that the compiler might need to use (QueryBuilder query used
     # to fetch the node for example).
     attr_reader :opts
@@ -48,7 +51,9 @@ module Zafu
     # ivar name (see #master_class).
     def as_main(after_class = nil)
       klass = after_class ? master_class(after_class) : single_class
-      self.class.new("@#{klass.to_s.underscore}", single_class)
+      res = self.class.new("@#{klass.to_s.underscore}", single_class, nil, :new_record => @opts[:new_record])
+      res.dom_prefix = self.dom_prefix
+      res
     end
 
     # Find the class just afer 'after_class' in the class hierarchy.
@@ -89,7 +94,7 @@ module Zafu
           str || "<%= #{code} %>"
         end
       else
-        (
+        @saved_dom_id || (
           [dom_prefix] +
           dom_scopes   +
           (options[:list] ? [make_scope_id] : [])
