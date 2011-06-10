@@ -29,22 +29,28 @@ module Zafu
 
         # We use 'elsif' just in case there are more then one 'else' clause
         if markup = @context[:markup]
-          # Copy markup tag
-          @markup.tag ||= markup.tag
-          @markup.steal_html_params_from(@params)
-          markup.params.each do |k, v|
-            next if @markup.params[k]
-            @markup.set_param(k, v)
-          end
+          if @markup.tag.blank?
+            # Copy markup tag
+            @markup.tag = markup.tag
+            @markup.steal_html_params_from(@params)
+            markup.params.each do |k, v|
+              next if @markup.params[k]
+              @markup.set_param(k, v)
+            end
 
-          markup.dyn_params.each do |k, v|
-            next if @markup.params[k] || @markup.dyn_params[k]
-            @markup.set_dyn_param(k, v)
+            markup.dyn_params.each do |k, v|
+              next if @markup.params[k] || @markup.dyn_params[k]
+              @markup.set_dyn_param(k, v)
+            end
+            inner = wrap(res)
+          else
+            markup.done = false
+            # Wrap with both markup (ours and the else/elsif clause).
+            inner = markup.wrap(wrap(res))
           end
-
-          out "<% elsif #{cond} %>#{wrap(res)}" # do not propagate
+          out "<% elsif #{cond} %>#{inner}" # do not propagate
         else
-          @markup.done = true # never wrap else/elsif clause
+          #@markup.done = true # never wrap else/elsif clause
           out "<% elsif #{cond} %>#{res}" # do not propagate
         end
       end
