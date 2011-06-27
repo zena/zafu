@@ -210,6 +210,13 @@ module Zafu
       enter(mode)
     end
 
+    # Pass some contextual information to siblings
+    def pass(elems = nil)
+      return @pass unless elems
+      (@pass ||= {}).merge!(elems)
+      @pass
+    end
+
     # Hook called when replacing part of an included template with '<r:with part='main'>...</r:with>'
     # This replaces the current object 'self' which is in the original included template, with the custom version 'obj'.
     def replace_with(obj)
@@ -241,10 +248,9 @@ module Zafu
       # FIXME: replace with array and join (faster)
       @result   = ""
       @out_post = ""
+      @pass     = nil
 
       before_process
-
-      @pass = {} # used to pass information to the parent (is this used ?)
 
       res = wrap(expander || default_expander)
 
@@ -270,7 +276,7 @@ module Zafu
       if res.kind_of?(String)
         @result << res
       elsif @result.blank?
-        @result << (@errors.blank? ? @method : show_errors)
+        @result << (@errors.empty? ? '' : show_errors)
       end
       @result
     end
@@ -284,7 +290,6 @@ module Zafu
     def r_inspect
       expand_with(:preflight=>true)
       @blocks = []
-      @pass.merge!(@parts||{})
       self.inspect
     end
 
@@ -594,10 +599,6 @@ module Zafu
       blocks = acontext.delete(:blocks) || @blocks
       res = ""
 
-      # FIXME: I think we can delete @pass and @parts stuff now (test first).
-
-      @pass  = {} # current object sees some information from it's direct descendants
-      @parts = {}
       only   = acontext[:only]
       new_context = @context.merge(acontext)
 
@@ -619,11 +620,7 @@ module Zafu
         elsif (!only || (only.kind_of?(Array) && only.include?(b.method)) || only =~ b.method) && (!ignore || !ignore.include?(b.method))
           res << b.process(new_context.dup)
           if pass = b.pass
-            if pass[:part]
-              @parts.merge!(pass[:part])
-              pass.delete(:part)
-            end
-            @pass.merge!(pass)
+            new_context.merge!(pass)
           end
         end
       end
@@ -647,20 +644,6 @@ module Zafu
         end
       end
       attributes << " {> #{context.sort.join(', ')}}" unless context == []
-
-      pass = []
-      (@pass || {}).each do |k,v|
-        unless v.nil?
-          if v.kind_of?(Array)
-            pass << "#{k.inspect.gsub('"', "'")}=>#{v.inspect.gsub('"', "'")}"
-          elsif v.kind_of?(Parser)
-            pass << "#{k.inspect.gsub('"', "'")}=>['#{v}']"
-          else
-            pass << "#{k.inspect.gsub('"', "'")}=>#{v.inspect.gsub('"', "'")}"
-          end
-        end
-      end
-      attributes << " {< #{pass.sort.join(', ')}}" unless pass == []
 
       res = []
       @blocks.each do |b|

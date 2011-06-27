@@ -12,7 +12,18 @@ module Mock
 
 
     def r_inspect
-      out "#{@params.inspect}"
+      out "#{@params.inspect} xxxx"
+    end
+
+    # Test passing information to siblings
+    def r_pass
+      pass(@params)
+      true
+    end
+
+    def r_view_passed
+      key = @params[:key]
+      out @context[@params[:key].to_sym].to_s
     end
   end
 end

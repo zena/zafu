@@ -29,3 +29,7 @@ line_comment:
 do_not_touch_js_comment:
   src: "<r:raw>hello</r:raw> // This is a comment that will not be removed"
   tem: "<%= raw(\"hello\") %> // This is a comment that will not be removed"
+
+pass:
+  src: "<r:pass foo='hello'/><r:view_passed key='foo'/>"
+  tem: "hello"
