@@ -51,7 +51,7 @@ module Zafu
     # ivar name (see #master_class).
     def as_main(after_class = nil)
       klass = after_class ? master_class(after_class) : single_class
-      res = self.class.new("@#{klass.to_s.underscore}", single_class, nil, :new_record => @opts[:new_record])
+      res = self.class.new("@#{klass.to_s.underscore}", single_class, nil) #, :new_record => @opts[:new_record])
       res.dom_prefix = self.dom_prefix
       res
     end
@@ -114,17 +114,23 @@ module Zafu
       @dom_scope = true
     end
 
+    # Returns the first occurence of the klass up in the hierachy
+    # This does not resolve [Node] as [Node].first.
     def get(klass)
-      if single_class <= klass
-        return self unless list_context?
-
-        res_class = self.klass
-        method = self.name
-        while res_class.kind_of?(Array)
-          method = "#{method}.first"
-          res_class = res_class.first
-        end
-        move_to(method, res_class)
+      if list_context?
+        return @up ? @up.get(klass) : nil
+      end
+      if self.klass <= klass
+        self
+        # return self unless list_context?
+        #
+        # res_class = self.klass
+        # method = self.name
+        # while res_class.kind_of?(Array)
+        #   method = "#{method}.first"
+        #   res_class = res_class.first
+        # end
+        # move_to(method, res_class)
       elsif @up
         @up.get(klass)
       else

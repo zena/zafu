@@ -82,7 +82,7 @@ module Zafu
               # Used to get parameters like 'publish', 'done', 'after'
               :add                => add_block,
               :publish_after_save => publish_after_save,
-              :node               => node.move_to("@node", klass, :new_record => true)
+              :new_keys           => {:parent_id => '@node.parent_zip'}
             }
 
             store_block(form_block, cont)
@@ -238,13 +238,40 @@ module Zafu
           klass = @context[:klass] || node.single_class
 
           # New object to render form.
-          new_node = node.move_to("#{var}_new", klass, :new_record => true)
+          new_node = node.move_to("#{var}_new", klass,
+            :new_keys   => {})
+
 
           if new_node.will_be?(Node)
             # FIXME: BUG if we set <r:form klass='Post'/> the user cannot select class with menu...
 
+            if @context[:saved_template]
+              parent_id = "#{node}.parent_zip"
+            else
+              parent_id = "#{node(Node)}.zip"
+            end
+
+            new_node.opts[:new_keys]['parent_id'] = parent_id
+
             # FIXME: inspect '@context[:form]' to see if it contains v_klass ?
-            out "<% if #{new_node} = secure(Node) { Node.new_node('class' => '#{new_node.klass}') } %>"
+            out "<% if #{new_node} = secure(Node) { Node.new_node('class' => '#{new_node.klass}', 'parent_id' => #{parent_id}) } %>"
+            # if node.will_be?(Node)
+            #   # Nested contexts:
+            #   # 1. @node
+            #   # 2. var1 = @node.children
+            #   # 3. var1_new = Node.new
+            #   if node.opts[:new_record] || @context[:saved_template]
+            #     if @context[:saved_template] || !@context[:in_add]
+            #       # TODO: we should not add parent_id on every saved_template. Why is this needed ?
+            #       parent_id = "#{node}.parent_zip"
+            #     else
+            #       # We are in var2_new
+            #       parent_id = "#{node.up(Node)}.zip"
+            #     end
+            #
+            #     hidden_fields['node[parent_id]'] = "<%= #{parent_id} %>"
+            #   end
+            # els
           else
             out "<% if #{new_node} = #{new_node.class_name}.new %>"
           end
@@ -395,6 +422,7 @@ module Zafu
 
           # Create new node context
           node = cont[:node].as_main(ActiveRecord::Base)
+          node.opts[:new_keys] = cont.delete(:new_keys)
 
           # The dom_id will be calculated from the Ajax params in the view.
           node.saved_dom_id = "\#{ndom_id(#{node})}"

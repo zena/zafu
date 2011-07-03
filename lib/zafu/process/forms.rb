@@ -35,6 +35,7 @@ module Zafu
 
           # Render hidden fields (these must go after normal elements so that focusFirstElement works)
           hidden_fields = form_hidden_fields(options)
+
           out "<div class='hidden'>"
           hidden_fields.each do |k,v|
             if v.kind_of?(String)
@@ -68,15 +69,20 @@ module Zafu
           # opts[:klass] = node.master_class(ActiveRecord::Base).to_s
 
           if @context[:in_add]
-            opts[:id]    = "#{node.dom_prefix}_form"
+            opts[:id]    = "#{node.dom_prefix}_add"
             opts[:style] = 'display:none;'
+          elsif @markup.tag == 'table'
+            # the normal id goes to the form wrapping the table
+            opts[:id]    = "#{node.dom_prefix}_tbl"
+            form_id      = node.dom_prefix
           end
 
+          form_id ||= "#{node.dom_prefix}_form_t"
           if @context[:template_url]
-            opts[:form_tag]    = "<% remote_form_for(:#{node.form_name}, #{node}, :html => {:id => \"#{node.dom_prefix}_form_t\"}) do |f| %>"
+            opts[:form_tag]    = "<% remote_form_for(:#{node.form_name}, #{node}, :html => {:id => #{form_id.inspect}}) do |f| %>"
             opts[:form_helper] = 'f'
           else
-            opts[:form_tag]    = "<% form_for(:#{node.form_name}, #{node}, :html => {:id => \"#{node.dom_prefix}_form_t\"}) do |f| %>"
+            opts[:form_tag]    = "<% form_for(:#{node.form_name}, #{node}, :html => {:id => #{form_id.inspect}}) do |f| %>"
             opts[:form_helper] = 'f'
           end
 
@@ -106,7 +112,15 @@ module Zafu
           # form_for ... do |f|
           out opts.delete(:form_tag)
             # f.xxx
-            yield(opts.merge(:in_form => true))
+            if markup.tag == 'table'
+              # Avoid <table><form> (invalid HTML)
+              bak = @result
+              @result = ''
+              yield(opts.merge(:in_form => true))
+              @result = bak + markup.wrap(@result)
+            else
+              yield(opts.merge(:in_form => true))
+            end
           # close form
           out opts[:form_helper] ? "<% end %>" : '</form>'
         end

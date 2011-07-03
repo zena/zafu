@@ -284,8 +284,12 @@ module Zafu
           ivar = signature.first
           if ivar == 'this'
             if node.list_context?
-              # Return first element
-              node.opts.merge(:class => node.klass.first, :method => "#{node}.first")
+              # Find single element up
+              if single_node = node(node.klass.first)
+                single_node.opts.merge(:class => single_node.klass, :method => single_node.to_s)
+              else
+                nil
+              end
             else
               node.opts.merge(:class => node.klass, :method => node.name)
             end

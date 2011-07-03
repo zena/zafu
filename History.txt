@@ -1,3 +1,10 @@
+== 0.8.2
+
+* Enhancements
+  * Fixed forms in ajax context (was not passing parent_id).
+  * Changed resolution of 'this' in list context (going up, not using first).
+  * Fixed forms in "table" (should wrap around table, not inside).
+
 == 0.8.1
 
 * Enhancements
