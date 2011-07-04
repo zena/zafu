@@ -288,6 +288,7 @@ module Zafu
               if single_node = node(node.klass.first)
                 single_node.opts.merge(:class => single_node.klass, :method => single_node.to_s)
               else
+                out parser_error("In [#{node.klass.first}], could resolve 'this'.")
                 nil
               end
             else
