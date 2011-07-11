@@ -210,10 +210,10 @@ class NodeContextTest < Test::Unit::TestCase
       @mother.move_to('list', [Page])
     end
 
-    should 'find the context and resolve with first' do
+    should 'find the context and resolve without using first' do
       assert context = subject.get(Page)
-      assert_equal 'list.first', context.name
-      assert_equal Page, context.klass
+      assert_equal '@page', context.name
+      assert_equal SubPage, context.klass
     end
 
     should 'return parent on up with class' do
@@ -239,10 +239,10 @@ class NodeContextTest < Test::Unit::TestCase
       @mother.move_to('list', [[[Page]]])
     end
 
-    should 'find the context and resolve with first' do
+    should 'find the context without using first' do
       assert context = subject.get(Page)
-      assert_equal 'list.first.first.first', context.name
-      assert_equal Page, context.klass
+      assert_equal '@page', context.name
+      assert_equal SubPage, context.klass
     end
 
     should 'return parent on up with class' do

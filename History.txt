@@ -1,4 +1,4 @@
-== 0.8.2
+== 0.8.2 2011-07-11
 
 * Enhancements
   * Fixed forms in ajax context (was not passing parent_id).
