@@ -51,7 +51,7 @@ module Zafu
     # ivar name (see #master_class).
     def as_main(after_class = nil)
       klass = after_class ? master_class(after_class) : single_class
-      res = self.class.new("@#{klass.to_s.underscore}", single_class, nil) #, :new_record => @opts[:new_record])
+      res = self.class.new("@#{klass.to_s.underscore}", single_class, nil)
       res.dom_prefix = self.dom_prefix
       res
     end
@@ -94,11 +94,14 @@ module Zafu
           str || "<%= #{code} %>"
         end
       else
-        @saved_dom_id || (
-          [dom_prefix] +
-          dom_scopes   +
-          (options[:list] ? [make_scope_id] : [])
-        ).compact.uniq.join('_')
+        @saved_dom_id || if options[:list]
+          scopes = dom_scopes
+          scopes = [dom_prefix] if scopes.empty?
+          scopes + [make_scope_id]
+        else
+          scopes = dom_scopes
+          scopes + ((@up || scopes.empty?) ? [dom_prefix] : [])
+        end.compact.uniq.join('_')
       end
     end
 
@@ -173,7 +176,17 @@ module Zafu
     protected
       # List of scopes defined in ancestry (used to generate dom_id).
       def dom_scopes
-        (@up ? @up.dom_scopes : []) + (@dom_scope ? [make_scope_id] : [])
+        return [@saved_dom_id] if @saved_dom_id
+        if @up
+          scopes = @up.dom_scopes
+          if @dom_scope
+            (scopes.empty? ? [dom_prefix] : scopes) + [make_scope_id]
+          else
+            scopes
+          end
+        else
+          @dom_scope ? [dom_prefix, make_scope_id] : []
+        end
       end
 
     private

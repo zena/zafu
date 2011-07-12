@@ -261,22 +261,30 @@ class NodeContextTest < Test::Unit::TestCase
   context 'Generating a dom id' do
     context 'in a blank context' do
       subject do
-        NodeContext.new('@foo', Page)
+        n = NodeContext.new('@foo', Page)
+        n.dom_prefix = 'list1'
+        n
       end
 
       should 'return the node name in DOM id' do
-        assert_equal '<%= @foo.zip %>', subject.dom_id
+        assert_equal '<%= %Q{list1_#{@foo.zip}} %>', subject.dom_id
+      end
+
+      should 'not use zip on list false' do
+        assert_equal 'list1', subject.dom_id(:list => false)
       end
 
       should 'scope without erb on erb false' do
-        assert_equal '#{@foo.zip}', subject.dom_id(:erb => false)
+        assert_equal 'list1_#{@foo.zip}', subject.dom_id(:erb => false)
       end
     end
 
     context 'in a hierarchy of contexts' do
       setup do
         @a       = NodeContext.new('@node', Page)
+        @a.dom_prefix = 'a'
         @b       = NodeContext.new('var1', [Page], @a)
+        @b.dom_prefix = 'b'
         @c       = NodeContext.new('var2', Page, @b)
       end
 
@@ -291,7 +299,22 @@ class NodeContextTest < Test::Unit::TestCase
         end
 
         should 'use dom_scopes' do
-          assert_equal '<%= %Q{#{var1.zip}_#{var2.zip}_#{var3.zip}} %>', subject.dom_id
+          assert_equal '<%= %Q{b_#{var1.zip}_#{var2.zip}_#{var3.zip}} %>', subject.dom_id
+        end
+
+        should 'use dom_scopes and dom_prefix not in list' do
+          subject.dom_prefix = 'd'
+          assert_equal '<%= %Q{b_#{var1.zip}_#{var2.zip}_d} %>', subject.dom_id(:list => false)
+        end
+        
+        context 'with a saved dom_id' do
+          setup do
+            @c.saved_dom_id = '#{ndom_id(@foo)}'
+          end
+          
+          should 'use saved id in scope' do
+            assert_equal '<%= %Q{#{ndom_id(@foo)}_#{var3.zip}} %>', subject.dom_id
+          end
         end
       end
 
@@ -302,7 +325,7 @@ class NodeContextTest < Test::Unit::TestCase
         end
 
         should 'not use self twice' do
-          assert_equal '<%= %Q{#{@node.zip}_#{var3.zip}} %>', subject.dom_id
+          assert_equal '<%= %Q{a_#{@node.zip}_#{var3.zip}} %>', subject.dom_id
         end
       end
 
@@ -312,6 +335,7 @@ class NodeContextTest < Test::Unit::TestCase
         end
 
         should 'use dom_prefix' do
+          subject.dom_prefix = nil
           assert_equal '<%= %Q{cart_#{var3.zip}} %>', subject.dom_id
         end
       end

@@ -36,20 +36,25 @@ module Zafu
         end
 
         if need_ajax?(each_block)
+          #node.dom_prefix = dom_name
           # We need to build the templates for ajax rendering.
+          # HACK to avoid changing dom_prefix in drag&drop
+
+          # The bug with wrong prefix between drop inline and ajax result comes from
+          # here (see selenium test drop1 and drop2).
+          node.dom_prefix = dom_name
 
           # 1. Render inline
           #                                                                                                                 assign [] to var
           out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{finder[:class].first <= Comment ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
           # The list is not empty or we have enough rights to add new elements.
 
-          node.dom_prefix = dom_name
-
           # New node context.
           open_node_context(finder, :node => self.node.move_to(var, finder[:class])) do
             # Pagination count and other contextual variables exist here.
 
-            # TODO: DRY with r_block...
+            tmplt_node = self.node.move_to(var, finder[:class])
+            tmplt_node.dom_prefix = node.dom_prefix
 
             # INLINE ==========
             out wrap(
@@ -72,11 +77,11 @@ module Zafu
             )
 
             # 2. Save 'each' template
-            store_block(each_block, :node => self.node.move_to(var, finder[:class])) #, :klass => klass) # do we need klass here ?
+            store_block(each_block, :node => tmplt_node)
 
             # 3. Save 'form' template
             cont = {
-              :saved_template     => form_url(node.dom_prefix),
+              :saved_template     => form_url(tmplt_node.dom_prefix),
               :klass              => klass,
               :make_form          => each_block == form_block,
               # Used to get parameters like 'publish', 'done', 'after'
@@ -238,8 +243,7 @@ module Zafu
           klass = @context[:klass] || node.single_class
 
           # New object to render form.
-          new_node = node.move_to("#{var}_new", klass,
-            :new_keys   => {})
+          new_node = node.move_to("#{var}_new", klass, :new_keys => {})
 
 
           if new_node.will_be?(Node)
@@ -313,6 +317,7 @@ module Zafu
         if @context[:saved_template]
           # render to start a saved template
           node.saved_dom_id = "\#{ndom_id(#{node})}"
+          node.dom_prefix ||= dom_name
           node.propagate_dom_scope!
           @markup.set_id(node.dom_id)
 
@@ -346,7 +351,7 @@ module Zafu
 
       # Return true if we need to insert the dom id for this element.
       def need_dom_id?
-        @context[:form] || descendant('unlink') || descendant('drop')
+        @context[:form] || child['unlink'] || (single_child_method && single_child_method == child['drop'])
       end
 
       # Unique template_url, ending with dom_id
@@ -362,7 +367,7 @@ module Zafu
       # Context is passed when the parent needs to set dom_name on a child
       # before @context is passed down.
       def dom_name(context = @context)
-        @name ||= unique_name(context)
+        @dom_name ||= unique_name(context)
       end
 
       # Return a different name on each call

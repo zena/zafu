@@ -40,6 +40,7 @@ module Zafu
             if node.list_context?
               # we are still in a list (example: previous context was [[Node]], current is [Node])
             else
+              node.dom_prefix ||= dom_name
               node.propagate_dom_scope!
 
               if need_dom_id?

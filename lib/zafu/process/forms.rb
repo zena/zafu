@@ -41,7 +41,7 @@ module Zafu
             if v.kind_of?(String)
               v = "'#{v}'" unless v.kind_of?(String) && ['"', "'"].include?(v[0..0])
               out "<input type='hidden' name='#{k}' value=#{v}/>"
-            else
+            elsif v.kind_of?(Array)
               # We use ['ffff'] to indicate that the content is already escaped and ready for ERB.
               out v.first
             end
