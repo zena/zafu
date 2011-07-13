@@ -52,6 +52,7 @@ module Zafu
     def as_main(after_class = nil)
       klass = after_class ? master_class(after_class) : single_class
       res = self.class.new("@#{klass.to_s.underscore}", single_class, nil)
+      res.propagate_dom_scope! if @dom_scope
       res.dom_prefix = self.dom_prefix
       res
     end
@@ -176,7 +177,7 @@ module Zafu
     protected
       # List of scopes defined in ancestry (used to generate dom_id).
       def dom_scopes
-        return [@saved_dom_id] if @saved_dom_id
+        return [@saved_dom_id] if @dom_scope && @saved_dom_id
         if @up
           scopes = @up.dom_scopes
           if @dom_scope

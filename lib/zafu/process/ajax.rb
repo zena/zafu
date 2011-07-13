@@ -36,12 +36,6 @@ module Zafu
         end
 
         if need_ajax?(each_block)
-          #node.dom_prefix = dom_name
-          # We need to build the templates for ajax rendering.
-          # HACK to avoid changing dom_prefix in drag&drop
-
-          # The bug with wrong prefix between drop inline and ajax result comes from
-          # here (see selenium test drop1 and drop2).
           node.dom_prefix = dom_name
 
           # 1. Render inline

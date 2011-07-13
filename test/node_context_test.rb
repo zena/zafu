@@ -317,6 +317,17 @@ class NodeContextTest < Test::Unit::TestCase
           end
         end
       end
+      
+      context 'with a saved dom_id' do
+        setup do
+          @c.saved_dom_id = '#{ndom_id(@foo)}'
+        end
+        
+        should 'not use saved id in scope' do
+          # We did not ask for dom_scope to propagate.
+          assert_equal '<%= %Q{b_#{var3.zip}} %>', subject.dom_id
+        end
+      end
 
       context 'with ancestors and self as dom_scopes' do
         setup do
