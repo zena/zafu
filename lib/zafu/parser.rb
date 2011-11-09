@@ -222,6 +222,7 @@ module Zafu
     def replace_with(obj)
       # keep @method (obj's method is always 'with')
       @blocks = obj.blocks.empty? ? @blocks : obj.blocks
+      obj.params.delete(:part)
       @params.merge!(obj.params)
     end
 
