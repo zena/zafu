@@ -1,3 +1,8 @@
+== 0.8.5 
+
+* Enhancements
+  * Fixed add/edit problem in lists.
+
 == 0.8.4 2011-11-09
 
 * Enhancements
