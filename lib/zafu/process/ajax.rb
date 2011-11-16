@@ -232,7 +232,7 @@ module Zafu
           end
 
           # Expand 'add' block
-          out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_form\"].each(Element.toggle);#{focus}return false;")}")
+          out wrap("#{expand_with(:onclick=>"[\"#{node.dom_prefix}_add\", \"#{node.dom_prefix}_0\"].each(Element.toggle);#{focus}return false;")}")
 
           klass = @context[:klass] || node.single_class
 
