@@ -1,7 +1,8 @@
-== 0.8.5 
+== 0.8.5
 
 * Enhancements
   * Fixed add/edit problem in lists.
+  * Added support for RubyLess access to alt_class.
 
 == 0.8.4 2011-11-09
 

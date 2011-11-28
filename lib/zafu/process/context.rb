@@ -24,8 +24,16 @@ module Zafu
             if alt_class = @params[:alt_class]
               alt_class = RubyLess.translate_string(self, alt_class)
               alt_test = @params[:alt_reverse] == 'true' ? "(#{var}_max_index - #{var}_index) % 2 != 0" : "#{var}_index % 2 != 0"
-              @markup.append_dyn_param(:class, "<%= #{alt_test} ? #{alt_class} : '' %>")
-              @markup.tag ||= 'div'
+
+              alt_var = get_var_name('set_var', 'alt_class')
+              set_context_var('set_var', 'alt_class', RubyLess::TypedString.new(alt_var, :class => String))
+              out "<% #{alt_var} = #{alt_test} ? #{alt_class} : '' %>"
+
+              if @markup.tag
+                @markup.append_dyn_param(:class, "<%= #{alt_var} %>")
+              else
+                # Just declare 'alt_class'
+              end
             end
           else
             out "<% #{node}.each do |#{var}| %>"
