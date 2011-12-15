@@ -141,35 +141,38 @@ module Zafu
           @markup.set_id(node.dom_id(:list => false))
           expand_with
         else
-          # Since we are using ajax, we will need this object to have an ID set.
-          @context[:node] = node.dup
-          node.dom_prefix = dom_name
+          # Since we are using ajax, we will need this object to have an ID set and
+          # have its own template_url and such.
+          with_context(:node => node.dup) do
+            node.dom_prefix = dom_name
 
-          # 1. store template
-          # will wrap with @markup
-          store_block(self, :ajax_action => 'show')
+            # 1. store template
+            # will wrap with @markup
+            store_block(self, :ajax_action => 'show')
 
-          if edit_block = descendant('edit')
-            form_block = descendant('form') || self
+            if edit_block = descendant('edit')
+              form_block = descendant('form') || self
 
-            publish_after_save = form_block.params[:publish] ||
-                                 (edit_block && edit_block.params[:publish])
+              publish_after_save = form_block.params[:publish] ||
+                                   (edit_block && edit_block.params[:publish])
 
-            # 2. store form
-            cont = {
-              :saved_template     => form_url(node.dom_prefix),
-              :make_form          => self == form_block,
-              :publish_after_save => publish_after_save,
-              :ajax_action        => 'edit',
-            }
+              # 2. store form
+              cont = {
+                :saved_template     => form_url(node.dom_prefix),
+                :make_form          => self == form_block,
+                :publish_after_save => publish_after_save,
+                :ajax_action        => 'edit',
+              }
 
-            store_block(form_block, cont)
+              store_block(form_block, cont)
+            end
+
+            # 3. render
+            # Set id with the current node context (<%= var1.zip %>).
+            @markup.set_id(node.dom_id(:list => false))
+
+            out expand_with
           end
-
-          # 3. render
-          # Set id with the current node context (<%= var1.zip %>).
-          @markup.set_id(node.dom_id(:list => false))
-          out expand_with
         end
       end
 

@@ -165,9 +165,9 @@ module Zafu
       # Change context for a given scope.
       def with_context(cont, merge = true)
         raise "Block missing" unless block_given?
-        cont_bak = @context.dup
+        cont_bak = @context
           if merge
-            @context.merge!(cont)
+            @context = @context.merge(cont)
           else
             @context = cont
           end
