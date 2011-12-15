@@ -135,21 +135,41 @@ module Zafu
 
         @markup.done = false
 
-        # reset scope
-        @context[:saved_template] = nil
-
         if @context[:block] == self
-          # Storing template (called from within store_block)
-          # Set id with the template's node context (<%= @node.zip %>).
+          # Storing our block template
+          node.dom_prefix = dom_name
           @markup.set_id(node.dom_id(:list => false))
           expand_with
+        elsif @context[:saved_template]
+          # already in a parent's store operation. Reset scope and simply render inline elements
+          # reset scope
+          with_context(:node => node.dup, :saved_template => nil) do
+            node.saved_dom_id = nil
+            node.dom_prefix = dom_name
+            @markup.set_id(node.dom_id(:list => false))
+            expand_with
+          end
         else
+          #@context[:saved_template] = nil
+          # node.saved_dom_id = nil
+          # @markup.set_id(nil)
+
           # Since we are using ajax, we will need this object to have an ID set and
           # have its own template_url and such.
-          with_context(:node => node.dup) do
+          with_context(:node => node.dup, :saved_template => nil) do
+            # reset scope
+            @markup = @markup.dup
+            @markup.set_id(nil)
+            node.saved_dom_id = nil
+            # our own domain
             node.dom_prefix = dom_name
 
-            # 1. store template
+            # 1. inline
+            # Set id with the current node context (<%= var1.zip %>).
+            @markup.set_id(node.dom_id(:list => false))
+
+            out expand_with
+            # 2. store template
             # will wrap with @markup
             store_block(self, :ajax_action => 'show')
 
@@ -159,7 +179,7 @@ module Zafu
               publish_after_save = form_block.params[:publish] ||
                                    (edit_block && edit_block.params[:publish])
 
-              # 2. store form
+              # 3. store form
               cont = {
                 :saved_template     => form_url(node.dom_prefix),
                 :make_form          => self == form_block,
@@ -169,12 +189,6 @@ module Zafu
 
               store_block(form_block, cont)
             end
-
-            # 3. render
-            # Set id with the current node context (<%= var1.zip %>).
-            @markup.set_id(node.dom_id(:list => false))
-
-            out expand_with
           end
         end
       end
