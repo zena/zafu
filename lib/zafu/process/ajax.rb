@@ -135,6 +135,9 @@ module Zafu
 
         @markup.done = false
 
+        # reset scope
+        @context[:saved_template] = nil
+
         if @context[:block] == self
           # Storing template (called from within store_block)
           # Set id with the template's node context (<%= @node.zip %>).
