@@ -133,9 +133,6 @@ module Zafu
           return expand_with
         end
 
-        # Since we are using ajax, we will need this object to have an ID set.
-        node.dom_prefix = dom_name
-
         @markup.done = false
 
         if @context[:block] == self
@@ -144,6 +141,10 @@ module Zafu
           @markup.set_id(node.dom_id(:list => false))
           expand_with
         else
+          # Since we are using ajax, we will need this object to have an ID set.
+          @context[:node] = node.dup
+          node.dom_prefix = dom_name
+
           # 1. store template
           # will wrap with @markup
           store_block(self, :ajax_action => 'show')
