@@ -36,8 +36,6 @@ module Zafu
         end
 
         if need_ajax?(each_block)
-          node.dom_prefix = dom_name
-
           # 1. Render inline
           #                                                                                                                 assign [] to var
           out "<% if (#{var} = #{finder[:method]}) || (#{node}.#{finder[:class].first <= Comment ? "can_comment?" : "can_write?"} && #{var}=[]) %>"
@@ -48,7 +46,9 @@ module Zafu
             # Pagination count and other contextual variables exist here.
 
             tmplt_node = self.node.move_to(var, finder[:class])
-            tmplt_node.dom_prefix = node.dom_prefix
+            # Own scope
+            node.dom_prefix = dom_name
+            tmplt_node.dom_prefix = dom_name
 
             # INLINE ==========
             out wrap(
@@ -150,14 +150,11 @@ module Zafu
             expand_with
           end
         else
-          #@context[:saved_template] = nil
-          # node.saved_dom_id = nil
-          # @markup.set_id(nil)
-
           # Since we are using ajax, we will need this object to have an ID set and
           # have its own template_url and such.
           with_context(:node => node.dup, :saved_template => nil) do
-            # reset scope
+            # reset scope. We only keep current id when we are called from
+            # r_drop.
             @markup = @markup.dup
             @markup.set_id(nil)
             node.saved_dom_id = nil
@@ -171,6 +168,7 @@ module Zafu
             out expand_with
             # 2. store template
             # will wrap with @markup
+
             store_block(self, :ajax_action => 'show')
 
             if edit_block = descendant('edit')

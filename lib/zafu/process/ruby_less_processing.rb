@@ -174,15 +174,16 @@ module Zafu
           elsif node && !node.list_context? && type = safe_method_from(node.klass, signature, node)
             # not a list_contex
             # Resolve node context methods: xxx.foo, xxx.bar
+            # All direct methods from nodes should be html escaped:
             type = type[:class].call(self, node.klass, signature) if type[:class].kind_of?(Proc)
-            type.merge(:receiver => RubyLess::TypedString.new(node.name, :class => node.klass))
+            type.merge(:receiver => RubyLess::TypedString.new(node.name, :class => node.klass, :h => true))
           elsif node && node.list_context? && type = safe_method_from(Array, signature, node)
             # FIXME: why do we need this here ? Remove with related code in zafu_safe_definitions ?
             type = type[:class].call(self, node.klass, signature) if type[:class].kind_of?(Proc)
             type.merge(:receiver => RubyLess::TypedString.new(node.name, :class => Array, :elem => node.klass.first))
           elsif node && node.list_context? && type = safe_method_from(node.klass.first, signature, node)
             type = type[:class].call(self, node.klass, signature) if type[:class].kind_of?(Proc)
-            type.merge(:receiver => RubyLess::TypedString.new("#{node.name}.first", :class => node.klass.first))
+            type.merge(:receiver => RubyLess::TypedString.new("#{node.name}.first", :class => node.klass.first, :h => true))
           elsif @rendering_block_owner && @blocks.first.kind_of?(String) && !added_options
             # Insert the block content into the method: <r:trans>blah</r:trans> becomes trans("blah")
             signature_with_block = signature.dup
@@ -240,6 +241,9 @@ module Zafu
           if res.klass == String && !@blocks.detect {|b| !b.kind_of?(String)}
             if lit = res.literal
               out erb_escape(lit)
+            # TODO: Enable this when we have time to ensure tests/functionality work correctly.
+            #elsif res.opts[:h]
+            #  show_string(res)
             else
               out "<%= #{res} %>"
             end

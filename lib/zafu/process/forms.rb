@@ -19,7 +19,7 @@ module Zafu
 
         if descendant('form_tag')
           # We have a specific place to insert our form
-          out expand_with(:form_options => options, :form => self)
+          out expand_with(:form_options => options, :form => self, :form_prefix => dom_name)
         else
           r_form_tag(options)
         end
@@ -31,7 +31,7 @@ module Zafu
           form_error_messages(opts[:form_helper])
 
           # Render form elements
-          out expand_with(opts)
+          out expand_with(opts.merge(:form_prefix => dom_name))
 
           # Render hidden fields (these must go after normal elements so that focusFirstElement works)
           hidden_fields = form_hidden_fields(options)
