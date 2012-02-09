@@ -137,7 +137,7 @@ module Zafu
 
         if @context[:block] == self
           # Storing our block template
-          node.dom_prefix = dom_name
+          #node.dom_prefix = dom_name
           @markup.set_id(node.dom_id(:list => false))
           expand_with
         elsif @context[:saved_template]
@@ -168,7 +168,6 @@ module Zafu
             out expand_with
             # 2. store template
             # will wrap with @markup
-
             store_block(self, :ajax_action => 'show')
 
             if edit_block = descendant('edit')
@@ -323,14 +322,14 @@ module Zafu
       def r_add_btn
         default = node.will_be?(Comment) ? _("btn_add_comment") : _("btn_add")
 
-        out "<a href='#' onclick='#{@context[:onclick]}'>#{text_for_link(default)}</a>"
+        out "<a href='javascript:void(0)' onclick='#{@context[:onclick]}'>#{text_for_link(default)}</a>"
       end
 
       def r_each
         if @context[:saved_template]
           # render to start a saved template
           node.saved_dom_id = "\#{ndom_id(#{node})}"
-          node.dom_prefix ||= dom_name
+          node.dom_prefix = dom_name unless node.raw_dom_prefix
           node.propagate_dom_scope!
           @markup.set_id(node.dom_id)
 

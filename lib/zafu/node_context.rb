@@ -112,6 +112,11 @@ module Zafu
       @dom_prefix || (@up ? @up.dom_prefix : nil)
     end
 
+    # Return dom_prefix without looking up.
+    def raw_dom_prefix
+      @dom_prefix
+    end
+
     # Mark the current context as being a looping element (each) whose DOM id needs to be propagated to sub-nodes
     # in order to ensure uniqueness of the dom_id (loops in loops problem).
     def propagate_dom_scope!

@@ -39,6 +39,7 @@ module Zafu
             out "<% #{node}.each do |#{var}| %>"
           end
 
+          raw_dom_prefix = node.raw_dom_prefix
 
           with_context(:node => node.move_to(var, node.klass.first, :query => node.opts[:query])) do
             # We pass the :query option for RubyLess resolution by using the QueryBuilder finder
@@ -48,7 +49,8 @@ module Zafu
             if node.list_context?
               # we are still in a list (example: previous context was [[Node]], current is [Node])
             else
-              node.dom_prefix ||= dom_name
+              # Change dom_prefix if it isn't our own (inherited).
+              node.dom_prefix = dom_name unless raw_dom_prefix
               node.propagate_dom_scope!
 
               if need_dom_id?
