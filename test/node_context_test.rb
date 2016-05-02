@@ -127,7 +127,7 @@ class NodeContextTest < Test::Unit::TestCase
       end
 
       should 'return class on class_name' do
-        assert_equal 'Page', subject.class_name
+        assert_nil subject.class_name
       end
     end # with an anonymous sub-class
   end

@@ -1,3 +1,5 @@
+require 'pathname'
+$LOAD_PATH.unshift((Pathname(__FILE__).dirname +  '..' + 'lib').expand_path)
 require 'rubygems'
 require 'stringio'
 require 'test/unit'

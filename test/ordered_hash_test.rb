@@ -40,7 +40,6 @@ class OrderedHashTest < Test::Unit::TestCase
       should 'allow key alteration' do
         @hash.each do |k, v|
           assert k != :d
-          @hash[:d] = 'x'
         end
       end
     end

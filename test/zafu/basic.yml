@@ -10,13 +10,7 @@ empty_do:
   src: "this is <li do=''>not</li>good"
   tem: "this is good"
 
-do_with_escaped_quote:
-  src: "<li do='raw(\'blah\')'>blah</li>"
-  tem: "<li><%= raw(\"blah\") %></li>"
 
-quotes_in_quotes:
-  src: "<r:inspect line_numbers='true' text=\"<code lang='lua'&gt;function foo(a); print(a); end</code&gt;\"/>"
-  tem: "/:text=>\"<code lang='lua'>function foo\(a\); print\(a\); end</code>\"/"
 
 comment:
   src: "<r:raw>hello</r:raw> //! This is a comment that will be removed"

@@ -2,26 +2,6 @@ require 'rubygems'
 require 'rake'
 require(File.join(File.dirname(__FILE__), 'lib/zafu/info'))
 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.version = Zafu::VERSION
-    gem.name = 'zafu'
-    gem.summary = %Q{Provides a powerful templating language based on xhtml for rails}
-    gem.description = %Q{Provides a powerful templating language based on xhtml for rails}
-    gem.email = "gaspard@teti.ch"
-    gem.homepage = "http://zenadmin.org/zafu"
-    gem.authors = ["Gaspard Bucher"]
-    gem.add_development_dependency "shoulda", ">= 0"
-    gem.add_development_dependency "yamltest", ">= 0.5.0"
-    gem.add_dependency "rubyless", ">= 0.7.0"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
-  end
-  Jeweler::GemcutterTasks.new
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
-end
-
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
@@ -42,7 +22,7 @@ rescue LoadError
   end
 end
 
-task :test => :check_dependencies
+#task :test => :check_dependencies
 
 task :default => :test
 

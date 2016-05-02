@@ -1,0 +1,40 @@
+PATH
+  remote: ../rubyless
+  specs:
+    rubyless (0.9.0)
+      ruby_parser (~> 2.3.1)
+      sexp_processor (>= 3.0.1)
+
+PATH
+  remote: ../yamltest
+  specs:
+    yamltest (0.9.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (1.8.3)
+    power_assert (0.2.7)
+    rake (10.4.2)
+    rdoc (3.12)
+      json (~> 1.4)
+    ruby_parser (2.3.1)
+      sexp_processor (~> 3.0)
+    sexp_processor (3.2.0)
+    shoulda (2.10.3)
+    test-unit (3.1.8)
+      power_assert
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rake (= 10.4.2)
+  rdoc (= 3.12)
+  rubyless (= 0.9.0)!
+  shoulda (= 2.10.3)
+  test-unit (= 3.1.8)
+  yamltest (= 0.9.0)!
+
+BUNDLED WITH
+   1.11.2

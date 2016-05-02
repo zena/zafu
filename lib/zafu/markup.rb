@@ -228,7 +228,7 @@ module Zafu
     def wrap(text)
       return text if @done
 
-      text = "#{@pre_wrap.values}#{text}" if @pre_wrap
+      text = "#{@pre_wrap.values.join("")}#{text}" if @pre_wrap
 
       if dyn_params[:id]
         @tag ||= 'div'
@@ -275,7 +275,7 @@ module Zafu
           para << " #{k}='#{v}'"
         end
 
-        para
+        para.join("")
       end
 
   end
