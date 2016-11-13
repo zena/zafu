@@ -1,12 +1,16 @@
-PATH
-  remote: ../rubyless
+GIT
+  remote: https://github.com/zena/rubyless.git
+  revision: 39e061d16afe5f87cbf415e384703c8e6ebdc426
+  branch: 1.9.3
   specs:
     rubyless (0.9.0)
       ruby_parser (~> 2.3.1)
       sexp_processor (>= 3.0.1)
 
-PATH
-  remote: ../yamltest
+GIT
+  remote: https://github.com/zena/yamltest.git
+  revision: 8a9a9d302848f33c959369d0ed94f8ae7d8df901
+  branch: 1.9.3
   specs:
     yamltest (0.9.0)
 
@@ -37,4 +41,4 @@ DEPENDENCIES
   yamltest (= 0.9.0)!
 
 BUNDLED WITH
-   1.11.2
+   1.13.3
