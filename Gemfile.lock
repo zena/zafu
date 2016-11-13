@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/zena/rubyless.git
-  revision: 39e061d16afe5f87cbf415e384703c8e6ebdc426
-  branch: 1.9.3
+  revision: e52f307835d022013612cc7de00bbe320fba193d
+  branch: 2.2.1
   specs:
     rubyless (0.9.0)
       ruby_parser (~> 2.3.1)
@@ -9,8 +9,8 @@ GIT
 
 GIT
   remote: https://github.com/zena/yamltest.git
-  revision: 8a9a9d302848f33c959369d0ed94f8ae7d8df901
-  branch: 1.9.3
+  revision: 5b1e20406376634ac4f8c38d7df42e9f45fd3da7
+  branch: 2.2.1
   specs:
     yamltest (0.9.0)
 
@@ -41,4 +41,4 @@ DEPENDENCIES
   yamltest (= 0.9.0)!
 
 BUNDLED WITH
-   1.13.3
+   1.13.6
